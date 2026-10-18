@@ -1,6 +1,6 @@
 'use strict';
-const { clipboard, nativeImage } = require('electron');
 const win32 = require('./win32');
+const clip = require('./clipnative');
 const { apply } = require('./transforms');
 const { separatorValue } = require('./settings');
 
@@ -12,29 +12,29 @@ function writeClipToClipboard(store, id, { plain = false, transform = null } = {
   const by = Object.fromEntries(formats.map((f) => [f.format, f.data]));
 
   if (by.files && !plain) {
-    win32.writeFiles(JSON.parse(by.files.toString('utf8')));
+    clip.write({ files: JSON.parse(by.files.toString('utf8')) });
     return null;
   }
   if (by.png && !by.text) {
-    clipboard.writeImage(nativeImage.createFromBuffer(by.png));
+    clip.write({ png: by.png });
     return null;
   }
   let text = by.text ? by.text.toString('utf8') : '';
   if (by.files && plain) text = JSON.parse(by.files.toString('utf8')).join('\n');
   if (transform) {
     text = apply(transform, text);
-    clipboard.writeText(text);
+    clip.write({ text });
     return text;
   }
   if (plain) {
-    clipboard.writeText(text);
+    clip.write({ text });
     return text;
   }
   const data = { text };
   if (by.html) data.html = by.html.toString('utf8');
   if (by.rtf) data.rtf = by.rtf.toString('utf8');
-  if (by.png) data.image = nativeImage.createFromBuffer(by.png);
-  clipboard.write(data);
+  if (by.png) data.png = by.png;
+  clip.write(data);
   return text;
 }
 
@@ -57,7 +57,7 @@ async function pasteClips(ctx, ids, opts = {}) {
   if (ids.length > 1) {
     let text = joinTexts(store, ids, settings);
     if (opts.transform) text = apply(opts.transform, text);
-    clipboard.writeText(text);
+    clip.write({ text });
   } else {
     writeClipToClipboard(store, ids[0], opts);
   }

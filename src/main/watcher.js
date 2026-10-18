@@ -1,23 +1,26 @@
 'use strict';
-const { clipboard } = require('electron');
+const { nativeImage } = require('electron');
 const { EventEmitter } = require('node:events');
 const path = require('node:path');
 const win32 = require('./win32');
+const clip = require('./clipnative');
 const { Store } = require('./db');
 
 const POLL_MS = 120;
 const SETTLE_MS = 60;
 
-function normalizePreview(text, chars) {
-  return text.replace(/\s+/g, ' ').trim().slice(0, chars);
+/** Clip con solo HTML (alcune app non scrivono il testo semplice). */
+function htmlToText(html) {
+  return html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<br\s*\/?>|<\/(p|div|li|tr|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+    .replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function sourceUrlFromHtmlFormat() {
-  try {
-    const raw = clipboard.readBuffer('HTML Format').toString('utf8');
-    const m = /SourceURL:(\S+)/i.exec(raw);
-    return m ? m[1] : null;
-  } catch { return null; }
+function normalizePreview(text, chars) {
+  return text.replace(/\s+/g, ' ').trim().slice(0, chars);
 }
 
 class Watcher extends EventEmitter {
@@ -74,16 +77,15 @@ class Watcher extends EventEmitter {
   /** Legge la clipboard corrente e la salva. Restituisce l'id o null. */
   capture() {
     const s = this.settings;
-    if (s.get('respectPrivacyFormats') && win32.hasRegisteredFormat('ExcludeClipboardContentFromMonitorProcessing')) return null;
+    if (s.get('respectPrivacyFormats') && clip.hasRegistered('ExcludeClipboardContentFromMonitorProcessing')) return null;
     const source = win32.clipboardSource();
     if (!this.allowedBySource(source)) return null;
 
-    const text = clipboard.readText();
-    const fmts = clipboard.availableFormats();
-    const hasImage = fmts.some((f) => f.startsWith('image/'));
-    const files = win32.hasFiles() ? win32.readFiles() : [];
-    const html = fmts.includes('text/html') ? clipboard.readHTML() : '';
-    const rtf = fmts.includes('text/rtf') ? clipboard.readRTF() : '';
+    const cb = clip.read();
+    if (!cb) return null;
+    const { files, html, rtf } = cb;
+    const png = cb.png;
+    const text = cb.text || (html && !png ? htmlToText(html) : '');
 
     const formats = [];
     let kind;
@@ -111,11 +113,10 @@ class Watcher extends EventEmitter {
       searchText = text.toLowerCase().slice(0, 200000);
       size = data.length;
       hashParts = ['text', data];
-    } else if (hasImage) {
-      const img = clipboard.readImage();
+    } else if (png) {
+      const img = nativeImage.createFromBuffer(png);
       if (img.isEmpty()) return null;
       kind = 'image';
-      const png = img.toPNG();
       const { width, height } = img.getSize();
       formats.push({ format: 'png', data: png });
       formats.push({ format: 'thumb', data: img.resize({ height: Math.min(96, height) }).toPNG() });
@@ -142,7 +143,7 @@ class Watcher extends EventEmitter {
       return existing.id;
     }
 
-    const url = html ? sourceUrlFromHtmlFormat() : null;
+    const url = html ? cb.htmlUrl : null;
     const { id } = this.store.addClip({
       kind, hash, preview, searchText, size, formats,
       source: { exe: source.exe, title: source.title, url },

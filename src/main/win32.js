@@ -4,7 +4,6 @@ const koffi = require('koffi');
 
 const user32 = koffi.load('user32.dll');
 const kernel32 = koffi.load('kernel32.dll');
-const shell32 = koffi.load('shell32.dll');
 
 const RECT = koffi.struct('RECT', { left: 'int32', top: 'int32', right: 'int32', bottom: 'int32' });
 const POINT = koffi.struct('POINT', { x: 'int32', y: 'int32' });
@@ -20,9 +19,6 @@ const KBINPUT = koffi.struct('KBINPUT', {
   wVk: 'uint16', wScan: 'uint16', dwFlags: 'uint32', time: 'uint32',
   dwExtraInfo: 'uintptr_t', _tail: koffi.array('uint8', 8),
 });
-const DROPFILES = koffi.struct('DROPFILES', {
-  pFiles: 'uint32', pt: POINT, fNC: 'int32', fWide: 'int32',
-});
 
 const GetClipboardSequenceNumber = user32.func('uint32_t GetClipboardSequenceNumber()');
 const GetClipboardOwner = user32.func('void * GetClipboardOwner()');
@@ -37,31 +33,13 @@ const IsIconic = user32.func('bool IsIconic(void *)');
 const ShowWindow = user32.func('bool ShowWindow(void *, int)');
 const GetWindowTextW = user32.func('int GetWindowTextW(void *, _Out_ uint16_t *, int)');
 const IsWindow = user32.func('bool IsWindow(void *)');
-const OpenClipboard = user32.func('bool OpenClipboard(void *)');
-const CloseClipboard = user32.func('bool CloseClipboard()');
-const EmptyClipboard = user32.func('bool EmptyClipboard()');
-const SetClipboardData = user32.func('void * SetClipboardData(uint32_t, void *)');
-const GetClipboardData = user32.func('void * GetClipboardData(uint32_t)');
-const IsClipboardFormatAvailable = user32.func('bool IsClipboardFormatAvailable(uint32_t)');
-const RegisterClipboardFormatW = user32.func('uint32_t RegisterClipboardFormatW(str16)');
-const GetCurrentThreadId = kernel32.func('uint32_t GetCurrentThreadId()');
 const OpenProcess = kernel32.func('void * OpenProcess(uint32_t, bool, uint32_t)');
 const CloseHandle = kernel32.func('bool CloseHandle(void *)');
 const QueryFullProcessImageNameW = kernel32.func('bool QueryFullProcessImageNameW(void *, uint32_t, _Out_ uint16_t *, _Inout_ uint32_t *)');
-const GlobalAlloc = kernel32.func('void * GlobalAlloc(uint32_t, uintptr_t)');
-const GlobalLock = kernel32.func('void * GlobalLock(void *)');
-const GlobalUnlock = kernel32.func('bool GlobalUnlock(void *)');
-const GlobalSize = kernel32.func('uintptr_t GlobalSize(void *)');
-const GlobalFree = kernel32.func('void * GlobalFree(void *)');
-const DragQueryFileW = shell32.func('uint32_t DragQueryFileW(void *, uint32_t, _Out_ uint16_t *, uint32_t)');
 
-const CF_HDROP = 15;
-const GMEM_MOVEABLE = 0x0002;
 const PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
 const KEYEVENTF_KEYUP = 0x0002;
 const VK = { CONTROL: 0x11, SHIFT: 0x10, MENU: 0x12, V: 0x56, INSERT: 0x2d, LWIN: 0x5b, RWIN: 0x5c };
-
-const addrKey = (p) => (p ? String(koffi.address(p)) : '0');
 
 function sequenceNumber() { return GetClipboardSequenceNumber(); }
 
@@ -152,65 +130,7 @@ function restoreForeground(hwnd) {
   return SetForegroundWindow(hwnd);
 }
 
-// ---- Formati speciali della clipboard ----
-const fmtIds = {};
-function formatId(name) { return (fmtIds[name] ??= RegisterClipboardFormatW(name)); }
-function hasRegisteredFormat(name) { return !!IsClipboardFormatAvailable(formatId(name)); }
-
-function withClipboard(fn, tries = 8) {
-  for (let i = 0; i < tries; i++) {
-    if (OpenClipboard(null)) {
-      try { return fn(); } finally { CloseClipboard(); }
-    }
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 15);
-  }
-  return undefined;
-}
-
-/** File copiati (CF_HDROP) come array di percorsi. */
-function readFiles() {
-  return withClipboard(() => {
-    if (!IsClipboardFormatAvailable(CF_HDROP)) return [];
-    const h = GetClipboardData(CF_HDROP);
-    if (!h) return [];
-    const count = DragQueryFileW(h, 0xffffffff, null, 0);
-    const files = [];
-    for (let i = 0; i < count; i++) {
-      const len = DragQueryFileW(h, i, null, 0);
-      const buf = new Uint16Array(len + 1);
-      DragQueryFileW(h, i, buf, len + 1);
-      files.push(Buffer.from(buf.buffer, 0, len * 2).toString('utf16le'));
-    }
-    return files;
-  }) || [];
-}
-
-function hasFiles() { return !!IsClipboardFormatAvailable(CF_HDROP); }
-
-/** Scrive solo CF_HDROP. */
-function writeFiles(paths) {
-  const list = Buffer.from(paths.join('\0') + '\0\0', 'utf16le');
-  const header = koffi.sizeof(DROPFILES);
-  const total = header + list.length;
-  const mem = GlobalAlloc(GMEM_MOVEABLE, total);
-  if (!mem) return false;
-  const ptr = GlobalLock(mem);
-  const view = Buffer.alloc(total);
-  view.writeUInt32LE(header, 0);
-  view.writeInt32LE(1, 16); // fWide
-  list.copy(view, header);
-  koffi.encode(ptr, koffi.array('uint8', total), Array.from(view));
-  GlobalUnlock(mem);
-  const ok = withClipboard(() => {
-    EmptyClipboard();
-    return !!SetClipboardData(CF_HDROP, mem);
-  });
-  if (!ok) GlobalFree(mem);
-  return !!ok;
-}
-
 module.exports = {
-  addrKey, sequenceNumber, foregroundWindow, windowAlive, clipboardSource, caretScreenPos,
-  sendPasteKeys, restoreForeground, hasRegisteredFormat, readFiles, hasFiles, writeFiles,
-  exeName, processExeOfWindow, GetCurrentThreadId, GlobalSize,
+  sequenceNumber, foregroundWindow, windowAlive, clipboardSource, caretScreenPos,
+  sendPasteKeys, restoreForeground, exeName, processExeOfWindow,
 };
