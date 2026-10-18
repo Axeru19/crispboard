@@ -1,0 +1,22 @@
+{
+  "name": "crispboard",
+  "version": "0.1.0",
+  "description": "Gestore di clipboard per Windows",
+  "main": "src/main/index.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "icons": "node scripts/build-icons.mjs",
+    "dist": "electron-builder --win dir"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@phosphor-icons/core": "^2.1.1",
+    "koffi": "^3.3.3"
+  }
+}

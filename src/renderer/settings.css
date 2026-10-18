@@ -1,0 +1,46 @@
+body { user-select: text; }
+.shell { height: 100vh; display: grid; grid-template-columns: 200px minmax(0, 1fr); }
+.side { padding: 52px 10px 12px; border-right: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 2px; -webkit-app-region: drag; }
+.side button { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border: 0; background: transparent; border-radius: var(--r-ctl); color: var(--text-2); text-align: left; font-size: 13.5px; }
+.side button:hover { background: var(--surface-2); color: var(--text); }
+.side button[aria-current='page'] { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.side .brand { position: absolute; top: 0; left: 0; width: 200px; height: 40px; display: flex; align-items: center; padding: 0 14px; font-weight: 600; letter-spacing: -0.01em; }
+.content { overflow-y: auto; padding: 52px 36px 40px; scrollbar-width: thin; outline: 0; }
+.content > * { max-width: 620px; }
+.content h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 4px; }
+.content .lede { color: var(--text-2); margin: 0 0 22px; max-width: 60ch; }
+.fgroup { display: grid; gap: 0; margin-bottom: 26px; }
+.fgroup > h2 { font-size: 12px; font-weight: 600; color: var(--text-3); margin: 0 0 6px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 24px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.field:last-child { border-bottom: 0; }
+.field .lbl { font-size: 13.5px; }
+.field .hint { grid-column: 1; color: var(--text-3); font-size: 12px; max-width: 52ch; }
+.field.stack { grid-template-columns: 1fr; }
+.field.stack .ctl { width: 100%; }
+.ctl input[type='number'], .ctl input[type='text'], .ctl select, .ctl textarea {
+  height: 32px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--r-ctl); padding: 0 10px; min-width: 150px;
+}
+.ctl textarea { height: 96px; padding: 8px 10px; width: 100%; font: 12.5px/1.5 var(--mono); resize: vertical; }
+.ctl input:focus, .ctl select:focus, .ctl textarea:focus { border-color: var(--accent); outline: 0; box-shadow: 0 0 0 3px var(--accent-soft); }
+.ctl input[type='number'] { width: 110px; min-width: 0; font-family: var(--mono); }
+.switch { appearance: none; width: 38px; height: 22px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--border); position: relative; transition: background 120ms var(--ease); margin: 0; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-3); transition: transform 120ms var(--ease), background 120ms var(--ease); }
+.switch:checked { background: var(--accent); border-color: transparent; }
+.switch:checked::after { transform: translateX(16px); background: var(--accent-ink); }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hk { height: 32px; min-width: 190px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--r-ctl); padding: 0 10px; font: 500 12.5px var(--mono); text-align: center; }
+.hk:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: 0; }
+.lbl-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.lbl-row:last-child { border-bottom: 0; }
+.lbl-row .sw { width: 22px; height: 22px; border-radius: 50%; background: var(--c); border: 0; padding: 0; }
+.lbl-row input { height: 30px; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 0 8px; min-width: 0; }
+.lbl-row input:hover { border-color: var(--border); }
+.lbl-row input:focus { border-color: var(--accent); outline: 0; background: var(--surface); }
+.lbl-row .count { font: 500 11.5px var(--mono); color: var(--text-3); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 24px; margin-bottom: 22px; }
+.stats div { display: grid; gap: 2px; }
+.stats b { font: 600 20px var(--mono); letter-spacing: -0.02em; }
+.stats span { font-size: 12px; color: var(--text-3); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+.note { color: var(--text-3); font-size: 12px; margin-top: 8px; max-width: 60ch; }
+.err { color: var(--danger); }

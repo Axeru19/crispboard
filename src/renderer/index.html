@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src crisp: data:; frame-src about:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crispboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="win" id="win">
+    <header class="bar">
+      <label class="search" id="search-box">
+        <span id="ic-search"></span>
+        <input id="q" type="text" role="combobox" aria-label="Cerca nella cronologia" aria-controls="list" aria-expanded="true" autocomplete="off" spellcheck="false" placeholder="Cerca">
+        <span class="count" id="count"></span>
+      </label>
+      <div class="seg" id="modes" role="radiogroup" aria-label="Modalità di ricerca">
+        <button type="button" role="radio" data-mode="contains" aria-checked="true" title="Il testo contiene la ricerca">Testo</button>
+        <button type="button" role="radio" data-mode="wildcard" aria-checked="false" title="Caratteri jolly * e ?">Jolly</button>
+        <button type="button" role="radio" data-mode="regex" aria-checked="false" title="Espressione regolare">Regex</button>
+      </div>
+      <button type="button" class="icon-btn" id="btn-preview" title="Anteprima (F3)" aria-label="Mostra o nascondi anteprima" aria-pressed="true"></button>
+      <button type="button" class="icon-btn" id="btn-more" title="Altro" aria-label="Altre azioni"></button>
+    </header>
+
+    <nav class="labelbar" id="labelbar" aria-label="Filtro per etichetta"></nav>
+
+    <main class="body" id="body">
+      <section class="list" id="list" role="listbox" aria-label="Cronologia" aria-multiselectable="true" tabindex="-1"></section>
+      <aside class="preview" id="preview" aria-label="Anteprima"></aside>
+    </main>
+
+    <footer class="hints" id="hints"></footer>
+    <div id="layer"></div>
+  </div>
+  <script src="icons.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
