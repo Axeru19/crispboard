@@ -2,15 +2,13 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0-alpha.2] - 2026-10-19
 
 ### Added
 - Layout button in the popup header (and *Aspetto → Layout* in Settings): automatic, preview on the right, preview below, list only.
 
 ### Fixed
 - The preview pane could disappear when the window was narrowed and not come back. It is now never hidden by window width: in *Automatico* it moves below the list on narrow windows; only *Solo lista* (or `F3`) hides it. The old `showPreview` setting migrates to `layout`.
-
-## [1.0.0-alpha.2] - 2026-10-19
 
 ### Added
 - Windows installer (`Crispboard-Setup-<version>.exe`, NSIS): per-user install, no administrator rights, Start menu shortcut, uninstaller in *Apps*. The portable zip is still published.
