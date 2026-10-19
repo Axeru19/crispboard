@@ -2,7 +2,7 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0-alpha.4] - 2026-10-19
 
 ### Fixed
 - Shortcuts with keys such as `à`, `ò`, `è`, `ù` (or `AltGr` combinations) on non-US layouts could not be recorded: Electron rejects non-ASCII accelerators. Shortcuts are now built from the physical key, so `Ctrl+à` is stored as `Ctrl+'` (same key). Keys that cannot be used in a global shortcut now show a message.
@@ -52,6 +52,7 @@ First public pre-release. Expect rough edges: please report bugs.
 - Pasting into apps running as administrator is not supported.
 - Executable is not code-signed.
 
+[1.0.0-alpha.4]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.4
 [1.0.0-alpha.3]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.2
 [1.0.0-alpha.1]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.1
