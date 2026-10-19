@@ -1,6 +1,6 @@
 {
   "name": "crispboard",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Fast, keyboard-first clipboard manager for Windows",
   "main": "src/main/index.js",
   "private": true,
@@ -8,7 +8,7 @@
     "start": "electron .",
     "test": "node --test test/*.test.js",
     "icons": "node scripts/build-icons.mjs",
-    "dist": "electron-builder --win dir",
+    "dist": "electron-builder --win",
     "e2e": "node scripts/e2e.mjs .scratch/e2e"
   },
   "devDependencies": {
@@ -41,11 +41,24 @@
     ],
     "win": {
       "target": [
+        "nsis",
         "dir"
       ],
       "icon": "assets/icon.ico"
     },
-    "npmRebuild": false
+    "npmRebuild": false,
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Crispboard",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "artifactName": "Crispboard-Setup-${version}.exe",
+      "uninstallDisplayName": "Crispboard"
+    }
   },
   "license": "MIT",
   "homepage": "https://github.com/Axeru19/crispboard#readme",

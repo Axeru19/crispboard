@@ -2,6 +2,11 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.2] - 2026-10-19
+
+### Added
+- Windows installer (`Crispboard-Setup-<version>.exe`, NSIS): per-user install, no administrator rights, Start menu shortcut, uninstaller in *Apps*. The portable zip is still published.
+
 ## [1.0.0-alpha.1] - 2026-10-19
 
 First public pre-release. Expect rough edges: please report bugs.
@@ -29,4 +34,5 @@ First public pre-release. Expect rough edges: please report bugs.
 - Pasting into apps running as administrator is not supported.
 - Executable is not code-signed.
 
+[1.0.0-alpha.2]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.2
 [1.0.0-alpha.1]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.1

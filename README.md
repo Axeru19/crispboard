@@ -59,13 +59,19 @@ Crispboard rebuilds the core of [Ditto](https://github.com/sabrogden/Ditto), the
 
 ## Install
 
-### Download (recommended)
+### Installer (recommended)
 
-1. Grab `Crispboard-win-x64.zip` from the [releases page](https://github.com/Axeru19/crispboard/releases).
-2. Unzip anywhere and run `Crispboard.exe`.
+1. Download `Crispboard-Setup-<version>.exe` from the [releases page](https://github.com/Axeru19/crispboard/releases).
+2. Run it. It installs for your user only (no administrator rights), adds a Start menu shortcut and starts Crispboard.
 3. Press `Ctrl+Alt+V`.
 
-The executable is not code-signed yet, so Windows SmartScreen may warn on first launch (*More info → Run anyway*). Turn on *Start with Windows* in Settings if you want it always available.
+Uninstall from *Settings → Apps*. Your history in `%APPDATA%\Crispboard` is kept.
+
+### Portable
+
+Download `Crispboard-win-x64.zip`, unzip anywhere and run `Crispboard.exe`.
+
+The installer and executable are not code-signed yet, so Windows SmartScreen may warn on first launch (*More info → Run anyway*). Turn on *Start with Windows* in Settings if you want it always available.
 
 ### Build from source
 
@@ -76,7 +82,7 @@ git clone https://github.com/Axeru19/crispboard.git
 cd crispboard
 npm install
 npm start               # run in development
-npm run dist            # build dist\win-unpacked\Crispboard.exe
+npm run dist            # installer in dist\ and portable build in dist\win-unpacked
 ```
 
 ## Keyboard reference
@@ -147,7 +153,7 @@ Not done yet (PRs welcome):
 - [ ] QR code / translate / email actions
 - [ ] Import Ditto themes and database
 - [ ] Rebindable in-popup shortcuts
-- [ ] Code signing and an installer / winget package
+- [ ] Code signing and a winget package
 - [ ] Pasting into apps running as administrator
 
 Known limits: Electron's memory footprint (a few hundred MB working set versus tens of MB for Ditto), palette-based (1/4/8-bit) bitmaps are not captured unless a PNG format is also on the clipboard, and clips over 300,000 characters cannot be edited in place.

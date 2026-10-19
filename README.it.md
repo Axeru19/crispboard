@@ -58,13 +58,19 @@ Crispboard rifà da zero il nucleo di [Ditto](https://github.com/sabrogden/Ditto
 
 ## Installazione
 
-### Download (consigliato)
+### Installer (consigliato)
 
-1. Scarica `Crispboard-win-x64.zip` dall'[pagina delle release](https://github.com/Axeru19/crispboard/releases).
-2. Estrailo dove vuoi ed esegui `Crispboard.exe`.
+1. Scarica `Crispboard-Setup-<versione>.exe` dalla [pagina delle release](https://github.com/Axeru19/crispboard/releases).
+2. Eseguilo: installa solo per il tuo utente (senza diritti di amministratore), crea il collegamento nel menu Start e avvia Crispboard.
 3. Premi `Ctrl+Alt+V`.
 
-L'eseguibile non è ancora firmato: al primo avvio SmartScreen può avvisare (*Ulteriori informazioni → Esegui comunque*). Attiva *Avvia con Windows* nelle Impostazioni per averlo sempre pronto.
+Disinstalli da *Impostazioni → App*. La cronologia in `%APPDATA%\Crispboard` resta.
+
+### Portatile
+
+Scarica `Crispboard-win-x64.zip`, estrailo dove vuoi ed esegui `Crispboard.exe`.
+
+Installer ed eseguibile non sono ancora firmati: al primo avvio SmartScreen può avvisare (*Ulteriori informazioni → Esegui comunque*). Attiva *Avvia con Windows* nelle Impostazioni per averlo sempre pronto.
 
 ### Compilare dai sorgenti
 
@@ -75,7 +81,7 @@ git clone https://github.com/Axeru19/crispboard.git
 cd crispboard
 npm install
 npm start               # avvio in sviluppo
-npm run dist            # crea dist\win-unpacked\Crispboard.exe
+npm run dist            # installer in dist\ e versione portatile in dist\win-unpacked
 ```
 
 ## Scorciatoie
@@ -135,7 +141,7 @@ Da fare (le PR sono benvenute):
 - [ ] QR code / traduzione / invio email
 - [ ] Import di temi e database di Ditto
 - [ ] Scorciatoie interne riassegnabili
-- [ ] Firma del codice, installer e pacchetto winget
+- [ ] Firma del codice e pacchetto winget
 - [ ] Incolla in app eseguite come amministratore
 
 Limiti noti: il consumo di memoria di Electron (alcune centinaia di MB di working set contro decine di Ditto), le bitmap a palette (1/4/8 bit) non vengono catturate se manca anche il formato PNG, e le clip oltre 300 000 caratteri non si modificano sul posto.
