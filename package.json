@@ -8,7 +8,7 @@
     "start": "electron .",
     "test": "node --test test/*.test.js",
     "icons": "node scripts/build-icons.mjs",
-    "dist": "electron-builder --win",
+    "dist": "electron-builder --win --publish never",
     "e2e": "node scripts/e2e.mjs .scratch/e2e"
   },
   "devDependencies": {
