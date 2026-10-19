@@ -7,6 +7,7 @@ const { pasteClips, writeClipToClipboard } = require('./paste');
 const { TRANSFORM_LABELS } = require('./transforms');
 const { exportClips, importClips, exportText } = require('./exporter');
 const { importDitto } = require('./dittoimport');
+const { prettyAccel } = require('./hotkeylabel');
 const { dibToPng } = require('./clipnative');
 
 const imageHelper = {
@@ -192,6 +193,7 @@ function register(app_) {
   handle('data:clear', ({ keepPinned = true } = {}) => { const n = store.deleteAll({ keepPinned }); changed(); return n; });
   handle('data:delete-unused', () => { const n = store.deleteUnused(); changed(); toast(`Eliminate ${n} clip mai usate`); return n; });
   handle('data:stats', () => store.stats());
+  handle('hotkey:labels', (list) => list.map((a) => settings.get('hotkeyLabels')[a] || prettyAccel(a)));
 
   handle('sync:send', async ({ friendIndex, ids }) => {
     const f = settings.get('friends')[friendIndex];

@@ -1,6 +1,6 @@
-import { $, $$, esc, highlight, relTime, fmtBytes, looksLikeCode, isUrl, appLabel, api } from './util.js';
+import { $, $$, esc, highlight, relTime, fmtBytes, looksLikeCode, isUrl, appLabel, api, showHotkeyLabels } from './util.js';
 import { showMenu, closeMenus, menuOpen, toast, showLabelPicker } from './ui.js';
-import { accelFromEvent, isUnsupported } from './accel.js';
+import { accelFromEvent, isUnsupported, labelFromEvent } from './accel.js';
 
 const PAGE = 200;
 const LAYOUTS = [['auto', 'Automatico', 'layout'], ['side', 'Anteprima a destra', 'columns'], ['stack', 'Anteprima sotto', 'rows'], ['list', 'Solo lista', 'list']];
@@ -228,10 +228,11 @@ function renderPreview() {
       </div>
       <div class="props" id="props" hidden>
         <label for="p-name">Nome rapido</label><input type="text" id="p-name" value="${esc(c.quick_name || '')}" placeholder="es. firma, iban">
-        <label for="p-key">Scorciatoia globale</label><input type="text" id="p-key" value="${esc(c.hotkey || '')}" placeholder="premi una combinazione" readonly>
+        <label for="p-key">Scorciatoia globale</label><input type="text" id="p-key" data-accel="${esc(c.hotkey || '')}" value="${esc(c.hotkey || '')}" placeholder="premi una combinazione" readonly>
         <label for="p-keep">Non eliminare mai</label><input type="checkbox" id="p-keep" ${c.never_delete ? 'checked' : ''}>
       </div>
     </div>`;
+  showHotkeyLabels(el.preview);
 }
 
 function renderEditor() {
@@ -566,12 +567,14 @@ el.preview.addEventListener('change', async (e) => {
 el.preview.addEventListener('keydown', async (e) => {
   if (e.target.id !== 'p-key') return;
   e.preventDefault();
-  if (e.key === 'Backspace' || e.key === 'Delete') { e.target.value = ''; await api('clips:set-meta', { id: current().id, meta: { hotkey: null } }); return; }
+  if (e.key === 'Backspace' || e.key === 'Delete') { e.target.value = ''; e.target.dataset.accel = ''; await api('clips:set-meta', { id: current().id, meta: { hotkey: null } }); return; }
   const acc = accelFromEvent(e);
   if (!acc) { if (isUnsupported(e)) toast('Questo tasto non può essere usato in una scorciatoia', 'error'); return; }
-  e.target.value = acc;
+  e.target.dataset.accel = acc;
+  await api('settings:set', { hotkeyLabels: { ...state.settings.hotkeyLabels, [acc]: await labelFromEvent(e, acc) } });
   await api('clips:set-meta', { id: current().id, meta: { hotkey: acc } });
-  toast(`Scorciatoia globale: ${acc}`);
+  await showHotkeyLabels(el.preview);
+  toast(`Scorciatoia globale: ${e.target.value}`);
 });
 
 document.addEventListener('keydown', async (e) => {

@@ -21,6 +21,11 @@ const KBINPUT = koffi.struct('KBINPUT', {
 });
 
 const GetClipboardSequenceNumber = user32.func('uint32_t GetClipboardSequenceNumber()');
+const MapVirtualKeyExW = user32.func('uint32_t MapVirtualKeyExW(uint32_t, uint32_t, void *)');
+const GetKeyboardLayout = user32.func('void * GetKeyboardLayout(uint32_t)');
+const ToUnicodeEx = user32.func('int ToUnicodeEx(uint32_t, uint32_t, uint8_t *, _Out_ uint16_t *, int, uint32_t, void *)');
+const LoadKeyboardLayoutW = user32.func('void * LoadKeyboardLayoutW(str16, uint32_t)');
+const UnloadKeyboardLayout = user32.func('bool UnloadKeyboardLayout(void *)');
 const GetClipboardOwner = user32.func('void * GetClipboardOwner()');
 const GetForegroundWindow = user32.func('void * GetForegroundWindow()');
 const SetForegroundWindow = user32.func('bool SetForegroundWindow(void *)');
@@ -137,7 +142,24 @@ function restoreForeground(hwnd) {
   return SetForegroundWindow(hwnd);
 }
 
+/** Carattere inciso sul tasto (virtual key) nel layout indicato, o in quello attivo. null se non stampabile. */
+function keyLabel(vk, hkl = null) {
+  const layout = hkl || GetKeyboardLayout(0);
+  const c = MapVirtualKeyExW(vk, 2, layout) & 0x7fffffff; // MAPVK_VK_TO_CHAR; il bit alto segna un tasto "morto"
+  return c ? String.fromCharCode(c) : null;
+}
+/** Carattere di una lettera (VK_A..VK_Z) nel layout: "Ф" sul layout russo, "A" su quelli latini. */
+function letterLabel(vk, hkl = null) {
+  const layout = hkl || GetKeyboardLayout(0);
+  const buf = new Uint16Array(4);
+  const n = ToUnicodeEx(vk, MapVirtualKeyExW(vk, 0, layout), new Uint8Array(256), buf, 4, 4, layout); // 4 = non alterare lo stato tastiera
+  return n === 1 ? String.fromCharCode(buf[0]) : null;
+}
+const loadLayout = (klid) => LoadKeyboardLayoutW(klid, 0x80); // KLF_NOTELLSHELL
+const unloadLayout = (h) => UnloadKeyboardLayout(h);
+
 module.exports = {
+  keyLabel, letterLabel, loadLayout, unloadLayout,
   sequenceNumber, foregroundWindow, windowAlive, clipboardSource, caretScreenPos,
   sendPasteKeys, sendCopyKeys, restoreForeground, exeName, processExeOfWindow,
 };

@@ -1,6 +1,6 @@
-import { $, $$, esc, fmtBytes, api } from './util.js';
+import { $, $$, esc, fmtBytes, api, showHotkeyLabels } from './util.js';
 import { showMenu, toast } from './ui.js';
-import { accelFromEvent, isUnsupported } from './accel.js';
+import { accelFromEvent, isUnsupported, labelFromEvent } from './accel.js';
 
 const SECTIONS = [
   {
@@ -100,7 +100,7 @@ function fieldHtml(f) {
   if (f.type === 'bool') ctl = `<input class="switch" type="checkbox" role="switch" id="f-${f.key}" data-key="${f.key}" ${v ? 'checked' : ''}>`;
   else if (f.type === 'number') ctl = `<input type="number" id="f-${f.key}" data-key="${f.key}" value="${esc(v)}" min="${f.min ?? ''}" max="${f.max ?? ''}">`;
   else if (f.type === 'text') ctl = `<input type="text" id="f-${f.key}" data-key="${f.key}" value="${esc(v)}">`;
-  else if (f.type === 'hotkey') ctl = `<input class="hk" type="text" id="f-${f.key}" data-key="${f.key}" data-hk="1" value="${esc(v)}" readonly placeholder="Premi una combinazione">`;
+  else if (f.type === 'hotkey') ctl = `<input class="hk" type="text" id="f-${f.key}" data-key="${f.key}" data-hk="1" data-accel="${esc(v)}" value="${esc(v)}" readonly placeholder="Premi una combinazione">`;
   else if (f.type === 'select') ctl = `<select id="f-${f.key}" data-key="${f.key}">${f.options.map(([val, l]) => `<option value="${val}" ${val === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   else if (f.type === 'list') ctl = `<textarea id="f-${f.key}" data-key="${f.key}" data-list="1" spellcheck="false">${esc((v || []).join('\n'))}</textarea>`;
   const stack = f.type === 'list';
@@ -191,6 +191,7 @@ function renderSection() {
   if (sec.custom === 'about') return renderAbout(sec);
   content.innerHTML = `<h1>${sec.title}</h1><p class="lede">${esc(sec.lede)}</p>` +
     sec.groups.map((g) => `<div class="fgroup"><h2>${esc(g.title)}</h2>${g.fields.map(fieldHtml).join('')}</div>`).join('');
+  showHotkeyLabels(content);
   return null;
 }
 
@@ -219,12 +220,14 @@ content.addEventListener('keydown', async (e) => {
   const t = e.target;
   if (!t.dataset?.hk) return;
   e.preventDefault();
-  if (e.key === 'Backspace' || e.key === 'Delete') { t.value = ''; await save(t.dataset.key, ''); return; }
+  if (e.key === 'Backspace' || e.key === 'Delete') { t.value = ''; t.dataset.accel = ''; await save(t.dataset.key, ''); return; }
   const a = accelFromEvent(e);
   if (!a) { if (isUnsupported(e)) toast('Questo tasto non può essere usato in una scorciatoia', 'error'); return; }
-  t.value = a;
+  t.dataset.accel = a;
   await save(t.dataset.key, a);
-  toast(`Scorciatoia impostata: ${a}`);
+  await save('hotkeyLabels', { ...state.settings.hotkeyLabels, [a]: await labelFromEvent(e, a) });
+  await showHotkeyLabels(content);
+  toast(`Scorciatoia impostata: ${t.value}`);
 });
 
 content.addEventListener('click', async (e) => {

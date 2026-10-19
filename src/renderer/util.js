@@ -50,3 +50,11 @@ export const api = (channel, payload) => window.crisp.invoke(channel, payload).t
   if (r && typeof r === 'object' && r.__error) throw new Error(r.__error);
   return r;
 });
+
+/** Mostra nei campi scorciatoia (input[data-accel]) il carattere del tasto nel layout attivo, es. "Ctrl+À". */
+export async function showHotkeyLabels(root = document) {
+  const inputs = $$('input[data-accel]', root);
+  if (!inputs.length) return;
+  const labels = await api('hotkey:labels', inputs.map((i) => i.dataset.accel));
+  inputs.forEach((i, n) => { i.value = labels[n]; });
+}

@@ -39,6 +39,7 @@ const DEFAULTS = {
   confirmDelete: false,
 
   // Buffer di copia (3): scorciatoie globali di copia/taglia/incolla in uno slot dedicato.
+  hotkeyLabels: {}, // accelerator -> testo mostrato (es. "Ctrl+'" -> "Ctrl+À"), salvato al momento della registrazione
   cbCopy1: '', cbCut1: '', cbPaste1: '', cbCopy2: '', cbCut2: '', cbPaste2: '', cbCopy3: '', cbCut3: '', cbPaste3: '',
   bufferClips: {},
 
