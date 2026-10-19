@@ -1,5 +1,5 @@
 'use strict';
-// Popola un database di prova: node scripts/seed-demo.js <cartella-dati>
+// Popola un database di prova: node scripts/seed-demo.js <cartella-dati> [light|dark]
 const path = require('node:path');
 const { Store } = require('../src/main/db');
 
@@ -40,5 +40,6 @@ for (const [text, o] of items.reverse()) {
   if (o.labels) store.assignLabel([id], o.labels, 'add');
   if (o.pin) store.setPinned(id, true);
 }
+if (process.argv[3]) store.setSetting('theme', process.argv[3]);
 console.log('seed ok:', store.stats());
 store.close();

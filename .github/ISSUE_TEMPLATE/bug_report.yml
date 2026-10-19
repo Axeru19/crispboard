@@ -1,0 +1,45 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Copy ...
+        2. Press Ctrl+Alt+V
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Crispboard version
+      description: Settings → Informazioni, or the release you downloaded
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 23H2
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App you were copying from or pasting into
+      description: Only if relevant (for example a terminal, an elevated app, a remote desktop session)
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or logs
+      description: Do not include private clipboard content.

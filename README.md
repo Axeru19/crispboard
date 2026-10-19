@@ -1,92 +1,163 @@
+<div align="center">
+
+<img src="assets/icon.png" alt="Crispboard" width="96" height="96">
+
 # Crispboard
 
-Gestore di clipboard per Windows 11, ispirato a [Ditto](https://github.com/sabrogden/Ditto). Replica le funzioni core di Ditto e aggiunge modifica in-place, etichette colorate e pin.
+**A fast, keyboard-first clipboard manager for Windows.**
+Everything you copy, one hotkey away. Search it, edit it, label it, pin it, paste it.
 
-- Analisi di Ditto: [`docs/ditto-analysis.md`](docs/ditto-analysis.md) (include la matrice di parità)
-- Architettura e design system: [`docs/design-system.md`](docs/design-system.md)
+[![CI](https://github.com/Axeru19/crispboard/actions/workflows/ci.yml/badge.svg)](https://github.com/Axeru19/crispboard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3ddc97.svg)](LICENSE)
+![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3b3b3b.svg)
 
-## Requisiti
+[Download](https://github.com/Axeru19/crispboard/releases/latest) · [Italiano](README.it.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
-- Windows 10/11 x64
-- Node.js 24 o superiore (per sviluppo; l'eseguibile pacchettizzato non lo richiede)
+<img src="docs/img/popup-dark.png" alt="Crispboard popup, dark theme" width="720">
 
-## Avvio da sorgente
+</div>
 
-```powershell
-npm install
-npm start
-```
+---
 
-L'app resta nell'area di notifica. Scorciatoia predefinita: **Ctrl+Alt+V** (cambiabile in Impostazioni).
-Un secondo avvio apre il popup dell'istanza già in esecuzione.
+## Why Crispboard
 
-## Pacchetto eseguibile
+Crispboard rebuilds the core of [Ditto](https://github.com/sabrogden/Ditto), the long-running Windows clipboard manager, with a modern interface and three things Ditto does not have:
 
-```powershell
-npm run dist          # crea dist\win-unpacked\Crispboard.exe
-```
-
-## Test
-
-```powershell
-npm test              # test unitari (database, ricerca, retention, export/import, trasformazioni, cifratura)
-npm run e2e           # end-to-end sull'app reale (vedi sotto)
-npm run icons         # rigenera src/renderer/icons.js da Phosphor
-node scripts/make-icon.mjs   # rigenera le icone in assets/
-```
-
-`npm run e2e` avvia l'app, usa la clipboard di Windows, pilota il popup via Chrome DevTools Protocol e incolla in una finestra WinForms di prova. Deve avere il focus della tastiera: non usare il PC durante l'esecuzione (circa 2 minuti). Screenshot e log finiscono nella cartella indicata come argomento.
-
-## Uso
-
-| Azione | Tasto |
+| | |
 |---|---|
-| Aprire / chiudere | Ctrl+Alt+V |
-| Navigare | ↑ ↓ PagSu PagGiù |
-| Incollare | Invio, doppio clic, Ctrl+1…9,0 (posizione) |
-| Incollare come testo semplice | Maiusc+Invio |
-| Incolla speciale (maiuscolo, slug, camelCase…) | clic destro → Incolla speciale |
-| Cercare | digita; modalità Testo / Jolly / Regex |
-| Modificare la clip sul posto | Ctrl+E o F2; salva con Ctrl+Invio, annulla con Esc |
-| Fissare in cima (pin) | Ctrl+P |
-| Etichette | Ctrl+L (digita per filtrare o creare), filtro Alt+1…8 |
-| Spostare | Alt+↑ / Alt+↓ |
-| Elimina | Ctrl+D o Canc |
-| Nuova clip | Ctrl+N |
-| Selezione multipla | Maiusc+↑/↓, Ctrl+clic; Invio incolla tutto con il separatore |
-| Anteprima | F3 |
+| **Edit in place** | Fix a clip right in the preview pane. No external editor, save with `Ctrl+Enter`, cancel with `Esc`. |
+| **Colored labels** | Organize clips with colored labels. A clip can have several. Filter with one click or `Alt+1…8`. |
+| **Pins that stay** | Pinned clips sit at the top and are **never** removed by the history limit, the expiry or "delete unused". |
 
-### Le tre funzioni nuove
-1. **Modifica in-place**: Ctrl+E trasforma il pannello di anteprima in un editor; le clip modificate sono marcate e il testo di ricerca si aggiorna. I formati HTML/RTF della clip, ormai obsoleti, vengono scartati al salvataggio.
-2. **Etichette colorate**: una clip può averne più di una; chip cliccabili sopra la lista filtrano all'istante (Alt+1…8); gestione completa in Impostazioni → Etichette.
-3. **Pin**: le clip fissate stanno in una sezione in cima e non vengono mai eliminate da limite di clip, scadenza o "elimina non usate".
+<p align="center">
+  <img src="docs/img/edit-dark.png" alt="In-place editing" width="49%">
+  <img src="docs/img/labels-dark.png" alt="Label filter" width="49%">
+</p>
 
-## Dati
+## Features
 
-- Database: `%APPDATA%\Crispboard\crispboard.db` (SQLite, WAL). Variabile `CRISPBOARD_DATA_DIR` per cambiare cartella.
-- Esporta/importa JSON, backup e ripristino dalle Impostazioni → Dati.
+- **Captures everything**: text, HTML, RTF, images, copied files. Every format is stored, so pasting keeps formatting.
+- **Instant search**: plain text, wildcards (`*`, `?`) or regular expressions, with highlighted matches.
+- **One global hotkey** (`Ctrl+Alt+V` by default). The window opens next to your text cursor and pastes back into the app you were using.
+- **Keyboard first**: arrows to move, `Enter` to paste, `Shift+Enter` for plain text, `Ctrl+1…0` to paste the first ten clips directly.
+- **Paste special**: UPPER, lower, Capitalize, Sentence, camelCase, slug, one line, trim, ASCII only, add time and more.
+- **Multi-paste**: select several clips and paste them with a configurable separator.
+- **Copy buffers**: three independent slots with their own global copy, cut and paste hotkeys.
+- **Privacy**: skips content flagged as private by password managers, and has an app exclusion list (KeePass, 1Password, Bitwarden, LastPass and Dashlane out of the box). Pause capture anytime from the tray.
+- **LAN sync**: push clips to other PCs on your network. End-to-end encrypted (AES-256-GCM) with a shared password. Off by default.
+- **History control**: maximum entries, expiry in days, duplicate handling, maximum clip size.
+- **Backup, export, import**: JSON export with labels and pins, SQLite backup and restore.
+- **Light and dark**: follows Windows, or choose.
+- **Light on the system**: starts hidden in the tray, no GPU process, opens instantly.
 
-## Sicurezza e privacy
+<p align="center">
+  <img src="docs/img/popup-light.png" alt="Light theme" width="49%">
+  <img src="docs/img/settings-labels-dark.png" alt="Settings" width="49%">
+</p>
 
-- Rispetta il formato `ExcludeClipboardContentFromMonitorProcessing` (gestori di password): quei contenuti non vengono salvati. Elenco di applicazioni escluse configurabile (predefiniti: KeePass, 1Password, Bitwarden, LastPass, Dashlane).
-- Il renderer non ha accesso a Node (`contextIsolation`, `sandbox`); i canali IPC sono in whitelist.
-- La cronologia è salvata in chiaro nel database locale, come in Ditto.
-- La sincronizzazione LAN è disattivata di default; quando attiva apre una porta TCP (predefinita 23443) e accetta solo messaggi cifrati con la password condivisa.
+## Install
 
-## Decisioni di progetto annotate
+### Download (recommended)
 
-- **Electron** perché sul PC non ci sono toolchain native (.NET SDK, Rust, MSVC). Memoria: circa 300 MB di working set sul processo (ridotti da GPU disattivata); è il costo principale rispetto a Ditto (decine di MB).
-- **Clipboard via Win32 (koffi)**: l'API clipboard di Electron 44 è asincrona e non espone CF_HDROP, RTF, HTML Format.
-- **Gruppi → etichette**: molti-a-molti, senza sottogruppi annidati.
-- Hotkey predefinita Ctrl+Alt+V invece di Ctrl+\` (assente sulla tastiera italiana).
+1. Grab `Crispboard-win-x64.zip` from the [latest release](https://github.com/Axeru19/crispboard/releases/latest).
+2. Unzip anywhere and run `Crispboard.exe`.
+3. Press `Ctrl+Alt+V`.
 
-## Limitazioni note
+The executable is not code-signed yet, so Windows SmartScreen may warn on first launch (*More info → Run anyway*). Turn on *Start with Windows* in Settings if you want it always available.
 
-- Non replicati: diff tra clip, QR code, Google Translate, invio email, ChaiScript e addin DLL, import di temi XML di Ditto, localizzazione oltre l'italiano.
-- Solo le scorciatoie globali sono riassegnabili; le scorciatoie interne al popup sono fisse.
-- L'incolla in applicazioni eseguite come amministratore non funziona se Crispboard non lo è a sua volta.
-- Le clip di testo oltre 300 000 caratteri non si modificano in-place (anteprima troncata).
-- Immagini: sono decodificate le DIB a 24/32 bit; formati a palette (1/4/8 bit) non vengono catturati se non esiste anche il formato PNG.
-- L'eseguibile non è firmato: SmartScreen può segnalarlo.
-- Il test e2e dipende dal focus della tastiera e va eseguito a PC inattivo.
-- Il pacchetto `dist\win-unpacked` pesa circa 380 MB (runtime Electron).
+### Build from source
+
+Requirements: Windows 10/11 x64 and [Node.js](https://nodejs.org) 24 or newer.
+
+```powershell
+git clone https://github.com/Axeru19/crispboard.git
+cd crispboard
+npm install
+npm start               # run in development
+npm run dist            # build dist\win-unpacked\Crispboard.exe
+```
+
+## Keyboard reference
+
+| Action | Keys |
+|---|---|
+| Open / close | `Ctrl+Alt+V` (configurable) |
+| Move | `↑` `↓` `PgUp` `PgDn` |
+| Paste | `Enter`, double click, `Ctrl+1…9,0` for the first ten |
+| Paste as plain text | `Shift+Enter` |
+| Paste special | right click → *Incolla speciale* |
+| Search | just type · modes: Text / Wildcard / Regex |
+| Edit in place | `Ctrl+E` or `F2` · save `Ctrl+Enter` · cancel `Esc` |
+| Pin / unpin | `Ctrl+P` |
+| Labels | `Ctrl+L` (type to filter or create) · filter `Alt+1…8` |
+| Reorder | `Alt+↑` `Alt+↓` |
+| Delete | `Ctrl+D` or `Del` |
+| New clip | `Ctrl+N` |
+| Multi-select | `Shift+↑/↓`, `Ctrl+click` |
+| Toggle preview | `F3` |
+| Settings | `Ctrl+,` |
+
+> The interface is currently in Italian. English localization is on the [roadmap](#roadmap), contributions welcome.
+
+## Privacy and security
+
+- Everything stays on your machine, in `%APPDATA%\Crispboard\crispboard.db` (SQLite). **History is stored unencrypted**, like Ditto. Use the app exclusion list for sensitive tools.
+- No telemetry, no network access unless you enable LAN sync.
+- LAN sync listens on a TCP port (default 23443) only when enabled, and drops anything not encrypted with your shared password. Only use it on networks you trust.
+- The UI runs in a sandboxed renderer with context isolation and an allow-list of IPC channels.
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md).
+
+## How it works
+
+Electron shell, SQLite via Node's built-in `node:sqlite`, and direct Win32 calls through [koffi](https://koffi.dev) for the clipboard, text-cursor position, focus restore and synthesized key presses. No framework in the renderer: plain JS and CSS tokens in OKLCH.
+
+Electron 44 made its clipboard API asynchronous and removed arbitrary formats, so Crispboard reads and writes the Windows clipboard directly (`CF_UNICODETEXT`, `HTML Format`, `Rich Text Format`, `PNG`, `CF_DIB`, `CF_HDROP`).
+
+More: [`docs/design-system.md`](docs/design-system.md) · [`docs/ditto-analysis.md`](docs/ditto-analysis.md) (feature analysis and parity matrix against Ditto).
+
+## Development
+
+```powershell
+npm test         # unit tests (database, search, retention, import/export, transforms, crypto)
+npm run e2e      # end-to-end on the real app: real clipboard, real pastes
+npm run icons    # regenerate src/renderer/icons.js from Phosphor
+node scripts/screenshots.mjs   # regenerate docs/img
+```
+
+`npm run e2e` drives the real clipboard and keyboard focus. Run it on an idle machine; it takes about two minutes.
+
+Project layout:
+
+```
+src/main/       main process: db, clipboard watcher, win32, paste, hotkeys, tray, sync
+src/renderer/   popup and settings UI (no build step)
+scripts/        icon generation, demo data, screenshots, e2e
+docs/           analysis, design system, screenshots
+```
+
+## Roadmap
+
+Not done yet (PRs welcome):
+
+- [ ] English (and other) localization
+- [ ] Diff between two clips
+- [ ] QR code / translate / email actions
+- [ ] Import Ditto themes and database
+- [ ] Rebindable in-popup shortcuts
+- [ ] Code signing and an installer / winget package
+- [ ] Pasting into apps running as administrator
+
+Known limits: Electron's memory footprint (a few hundred MB working set versus tens of MB for Ditto), palette-based (1/4/8-bit) bitmaps are not captured unless a PNG format is also on the clipboard, and clips over 300,000 characters cannot be edited in place.
+
+## Contributing
+
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+## Credits and license
+
+[MIT](LICENSE) © Axel Liuzzi.
+
+Crispboard is an independent project **inspired by Ditto** by Scott Brogden. It is not affiliated with Ditto and contains none of its code: Ditto's behavior was studied from its documented features, data schema and resource files to define the feature set.
+
+Built with [Electron](https://www.electronjs.org) (MIT), [koffi](https://koffi.dev) (MIT), [Phosphor Icons](https://phosphoricons.com) (MIT) and the [Geist](https://vercel.com/font) typeface (SIL OFL 1.1).

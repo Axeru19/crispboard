@@ -1,7 +1,7 @@
 {
   "name": "crispboard",
   "version": "1.0.0",
-  "description": "Gestore di clipboard per Windows",
+  "description": "Fast, keyboard-first clipboard manager for Windows",
   "main": "src/main/index.js",
   "private": true,
   "scripts": {
@@ -21,7 +21,7 @@
     "@phosphor-icons/core": "^2.1.1",
     "koffi": "^3.3.3"
   },
-  "author": "axel",
+  "author": "Axel Liuzzi",
   "build": {
     "appId": "it.crispboard.app",
     "productName": "Crispboard",
@@ -46,5 +46,28 @@
       "icon": "assets/icon.ico"
     },
     "npmRebuild": false
-  }
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Axeru19/crispboard#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Axeru19/crispboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Axeru19/crispboard/issues"
+  },
+  "keywords": [
+    "clipboard",
+    "clipboard-manager",
+    "windows",
+    "electron",
+    "ditto",
+    "productivity"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "os": [
+    "win32"
+  ]
 }
