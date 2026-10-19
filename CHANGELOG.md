@@ -2,6 +2,11 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Shortcuts with keys such as `à`, `ò`, `è`, `ù` (or `AltGr` combinations) on non-US layouts could not be recorded: Electron rejects non-ASCII accelerators. Shortcuts are now built from the physical key, so `Ctrl+à` is stored as `Ctrl+'` (same key). Keys that cannot be used in a global shortcut now show a message.
+
 ## [1.0.0-alpha.3] - 2026-10-19
 
 ### Added

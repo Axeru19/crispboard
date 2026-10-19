@@ -1,5 +1,6 @@
 import { $, $$, esc, fmtBytes, api } from './util.js';
 import { showMenu, toast } from './ui.js';
+import { accelFromEvent, isUnsupported } from './accel.js';
 
 const SECTIONS = [
   {
@@ -92,18 +93,6 @@ const SECTIONS = [
 
 const state = { settings: {}, meta: {}, section: new URLSearchParams(location.search).get('tab') || 'general' };
 const content = $('#content');
-
-function accel(e) {
-  const mods = [];
-  if (e.ctrlKey) mods.push('Ctrl');
-  if (e.altKey) mods.push('Alt');
-  if (e.shiftKey) mods.push('Shift');
-  if (e.metaKey) mods.push('Super');
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key) || !mods.length) return null;
-  let k = e.key.length === 1 ? e.key.toUpperCase() : e.key.replace('Arrow', '');
-  if (k === ' ') k = 'Space';
-  return [...mods, k].join('+');
-}
 
 function fieldHtml(f) {
   const v = state.settings[f.key];
@@ -231,8 +220,8 @@ content.addEventListener('keydown', async (e) => {
   if (!t.dataset?.hk) return;
   e.preventDefault();
   if (e.key === 'Backspace' || e.key === 'Delete') { t.value = ''; await save(t.dataset.key, ''); return; }
-  const a = accel(e);
-  if (!a) return;
+  const a = accelFromEvent(e);
+  if (!a) { if (isUnsupported(e)) toast('Questo tasto non può essere usato in una scorciatoia', 'error'); return; }
   t.value = a;
   await save(t.dataset.key, a);
   toast(`Scorciatoia impostata: ${a}`);

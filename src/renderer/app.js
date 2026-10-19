@@ -1,5 +1,6 @@
 import { $, $$, esc, highlight, relTime, fmtBytes, looksLikeCode, isUrl, appLabel, api } from './util.js';
 import { showMenu, closeMenus, menuOpen, toast, showLabelPicker } from './ui.js';
+import { accelFromEvent, isUnsupported } from './accel.js';
 
 const PAGE = 200;
 const LAYOUTS = [['auto', 'Automatico', 'layout'], ['side', 'Anteprima a destra', 'columns'], ['stack', 'Anteprima sotto', 'rows'], ['list', 'Solo lista', 'list']];
@@ -383,20 +384,6 @@ function openProps() {
   if (!p.hidden) $('#p-name').focus();
 }
 
-function accelFromEvent(e) {
-  const mods = [];
-  if (e.ctrlKey) mods.push('Ctrl');
-  if (e.altKey) mods.push('Alt');
-  if (e.shiftKey) mods.push('Shift');
-  if (e.metaKey) mods.push('Super');
-  const k = e.key;
-  if (['Control', 'Alt', 'Shift', 'Meta'].includes(k)) return null;
-  let key = k.length === 1 ? k.toUpperCase() : k.replace('Arrow', '');
-  if (key === ' ') key = 'Space';
-  if (!mods.length) return null;
-  return [...mods, key].join('+');
-}
-
 // ---------- menu contestuale ----------
 function contextMenu(x, y) {
   const c = current();
@@ -581,7 +568,7 @@ el.preview.addEventListener('keydown', async (e) => {
   e.preventDefault();
   if (e.key === 'Backspace' || e.key === 'Delete') { e.target.value = ''; await api('clips:set-meta', { id: current().id, meta: { hotkey: null } }); return; }
   const acc = accelFromEvent(e);
-  if (!acc) return;
+  if (!acc) { if (isUnsupported(e)) toast('Questo tasto non può essere usato in una scorciatoia', 'error'); return; }
   e.target.value = acc;
   await api('clips:set-meta', { id: current().id, meta: { hotkey: acc } });
   toast(`Scorciatoia globale: ${acc}`);
