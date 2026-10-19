@@ -17,6 +17,7 @@ const { Settings } = require('./settings');
 const { Watcher } = require('./watcher');
 const { Windows } = require('./windows');
 const { pasteClips } = require('./paste');
+const { Sync } = require('./sync');
 const win32 = require('./win32');
 const ipc = require('./ipc');
 
@@ -56,6 +57,24 @@ async function pasteNow(id, opts = {}) {
   windows.broadcast('list:changed');
 }
 
+/** Copia (o taglia) nell'app attiva e assegna la clip risultante a uno slot di buffer. */
+async function copyIntoBuffer(slot, cut) {
+  const { settings, watcher, windows } = state;
+  const before = win32.sequenceNumber();
+  win32.sendCopyKeys(cut);
+  const deadline = Date.now() + 800;
+  while (win32.sequenceNumber() === before && Date.now() < deadline) await new Promise((r) => setTimeout(r, 20));
+  if (win32.sequenceNumber() === before) { console.warn('buffer: la clipboard non è cambiata'); return; }
+  await new Promise((r) => setTimeout(r, 80));
+  watcher.lastSeq = win32.sequenceNumber();
+  const id = watcher.capture();
+  if (id) {
+    settings.set({ bufferClips: { ...(settings.get('bufferClips') || {}), [slot]: id } });
+    windows.broadcast('list:changed');
+    windows.broadcast('toast', { message: `Salvata nel buffer ${slot}` });
+  }
+}
+
 function registerHotkeys() {
   const { settings, store, windows } = state;
   globalShortcut.unregisterAll();
@@ -75,10 +94,22 @@ function registerHotkeys() {
       });
     }
   }
+  for (let n = 1; n <= 3; n++) {
+    if (settings.get(`cbCopy${n}`)) reg(settings.get(`cbCopy${n}`), () => copyIntoBuffer(n, false));
+    if (settings.get(`cbCut${n}`)) reg(settings.get(`cbCut${n}`), () => copyIntoBuffer(n, true));
+    if (settings.get(`cbPaste${n}`)) {
+      reg(settings.get(`cbPaste${n}`), () => {
+        const id = (settings.get('bufferClips') || {})[n];
+        if (id && store.getClip(id)) pasteNow(id, { keepOrder: true });
+        else windows.broadcast('toast', { message: `Il buffer ${n} è vuoto`, kind: 'error' });
+      });
+    }
+  }
   for (const r of store.db.prepare('SELECT id, hotkey FROM clips WHERE hotkey IS NOT NULL AND hotkey != \'\'').all()) {
     reg(r.hotkey, () => pasteNow(r.id));
   }
   if (failed.length) {
+    console.warn('scorciatoie non registrate:', failed.join(', '));
     windows.broadcast('toast', { message: `Scorciatoia già in uso: ${failed.join(', ')}`, kind: 'error' });
   }
   return failed;
@@ -87,7 +118,8 @@ function registerHotkeys() {
 function onSettingsChanged(keys) {
   const { settings, windows, watcher } = state;
   if (keys.includes('theme')) nativeTheme.themeSource = settings.get('theme');
-  if (keys.some((k) => ['hotkey', 'globalLastTen', 'globalLastTenModifier'].includes(k))) registerHotkeys();
+  if (keys.some((k) => ['hotkey', 'globalLastTen', 'globalLastTenModifier'].includes(k) || /^cb(Copy|Cut|Paste)\d$/.test(k))) registerHotkeys();
+  if (keys.some((k) => ['syncReceive', 'syncPort', 'syncPassword'].includes(k))) state.sync.apply();
   if (keys.includes('startWithWindows')) app.setLoginItemSettings({ openAtLogin: !!settings.get('startWithWindows') });
   if (keys.some((k) => ['showInTaskbar', 'alwaysOnTop', 'transparency'].includes(k))) windows.applyWindowFlags();
   if (keys.some((k) => ['maxEntries', 'expireDays'].includes(k))) {
@@ -133,7 +165,18 @@ app.whenReady().then(() => {
   setupProtocol();
   windows.createPopup();
   ipc.register(state);
-  watcher.on('changed', () => windows.broadcast('list:changed'));
+  const sync = new Sync({ store, settings, watcher });
+  state.sync = sync;
+  sync.on('error', (e) => windows.broadcast('toast', { message: `Sincronizzazione: ${e.message}`, kind: 'error' }));
+  sync.on('received', ({ remote, imported, skipped }) => {
+    windows.broadcast('list:changed');
+    windows.broadcast('toast', { message: `Ricevute ${imported + skipped} clip da ${String(remote).replace(/^::ffff:/, '')}` });
+  });
+  watcher.on('changed', ({ id, duplicate }) => {
+    windows.broadcast('list:changed');
+    if (!duplicate && settings.get('friends').some((f) => f.sendAll)) sync.sendToAll([id]);
+  });
+  sync.apply();
   watcher.on('error', (e) => console.error('watcher', e));
   store.applyRetention({ maxEntries: settings.get('maxEntries'), expireDays: settings.get('expireDays') });
   watcher.start();
@@ -160,7 +203,7 @@ app.whenReady().then(() => {
 
 // L'app vive nel tray: chiudere le finestre non termina il processo.
 app.on('window-all-closed', () => { /* resta attiva */ });
-app.on('will-quit', () => { globalShortcut.unregisterAll(); state.watcher?.stop(); });
+app.on('will-quit', () => { globalShortcut.unregisterAll(); state.watcher?.stop(); state.sync?.stop(); });
 app.on('web-contents-created', (_e, wc) => {
   wc.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   wc.on('will-navigate', (e) => e.preventDefault());

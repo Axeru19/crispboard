@@ -3,6 +3,7 @@ const win32 = require('./win32');
 const clip = require('./clipnative');
 const { apply } = require('./transforms');
 const { separatorValue } = require('./settings');
+const { Store } = require('./db');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -58,6 +59,15 @@ async function pasteClips(ctx, ids, opts = {}) {
     let text = joinTexts(store, ids, settings);
     if (opts.transform) text = apply(opts.transform, text);
     clip.write({ text });
+    if (settings.get('saveMultiPaste') && text) {
+      const data = Buffer.from(text, 'utf8');
+      const hash = Store.hashOf(['text', data]);
+      if (!store.findByHash(hash)) {
+        store.addClip({ kind: 'text', hash, preview: text.replace(/\s+/g, ' ').trim().slice(0, settings.get('descChars')),
+          searchText: text.toLowerCase().slice(0, 200000), size: data.length, source: { exe: 'crispboard' },
+          formats: [{ format: 'text', data }] });
+      }
+    }
   } else {
     writeClipToClipboard(store, ids[0], opts);
   }

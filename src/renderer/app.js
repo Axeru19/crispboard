@@ -424,6 +424,13 @@ function contextMenu(x, y) {
     submenu: [...labelItems, ...(labelItems.length ? [{ sep: true }] : []),
       { label: 'Gestisci etichette…', icon: 'plus', shortcut: 'Ctrl+L', onClick: () => openLabelPicker() }],
   });
+  const friends = state.settings.friends || [];
+  if (friends.length) {
+    items.push({
+      label: 'Invia a', icon: 'export',
+      submenu: friends.map((f, i) => ({ label: f.name || f.host, onClick: () => api('sync:send', { friendIndex: i, ids: targets() }).catch((e) => toast(e.message, 'error')) })),
+    });
+  }
   if (!multi) {
     items.push({
       label: 'Ordine', icon: 'arrow-up',

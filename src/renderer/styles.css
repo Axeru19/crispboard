@@ -210,7 +210,7 @@ kbd {
 .swatches { display: flex; gap: 6px; padding: 2px 8px 8px; }
 .swatch { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; background: var(--c); padding: 0; }
 .swatch[aria-checked='true'] { border-color: var(--text); }
-.toast { position: absolute; z-index: 40; left: 50%; bottom: 48px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: var(--r-pill); font-size: 12.5px; box-shadow: var(--shadow); animation: pop 140ms var(--ease); max-width: 80%; }
+.toast { position: absolute; z-index: 40; left: 50%; bottom: 4px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: var(--r-pill); font-size: 12.5px; box-shadow: var(--shadow); animation: pop 140ms var(--ease); max-width: 80%; }
 .toast.error { background: var(--danger); color: var(--bg); }
 
 @keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

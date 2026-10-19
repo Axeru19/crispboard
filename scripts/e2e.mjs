@@ -7,6 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import { pathToFileURL } from 'node:url';
+const pathToFileUrl = (p) => pathToFileURL(p).href;
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.resolve(process.argv[2] || path.join(os.tmpdir(), 'crispboard-e2e'));
@@ -81,20 +83,50 @@ $t = New-Object Windows.Forms.TextBox; $t.Multiline=$true; $t.Dock='Fill'; $f.Co
 $timer = New-Object Windows.Forms.Timer; $timer.Interval=200
 $timer.Add_Tick({ [IO.File]::WriteAllText('${sinkFile.replace(/\\/g, '/')}', $t.Text) })
 $timer.Start()
+$t.Add_KeyDown({ if ($_.Control -and $_.KeyCode -eq 'A') { $t.SelectAll(); $_.SuppressKeyPress=$true } })
 $f.Add_Shown({ $f.Activate(); $t.Focus() })
 [Windows.Forms.Application]::Run($f)
 `);
 let sink;
 const sinkText = () => (fs.existsSync(sinkFile) ? fs.readFileSync(sinkFile, 'utf8') : '');
 async function focusSink() {
-  ps(`Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::AppActivate('CrispSink')`);
-  await sleep(300);
+  const focusScript = `
+Add-Type @'
+using System; using System.Runtime.InteropServices; using System.Text;
+public class W { [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+ [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+ [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte sc, uint fl, UIntPtr ex);
+ [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, IntPtr pid);
+ [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint a, uint b, bool f);
+ [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+ [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr h);
+ [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int c); }
+'@
+$p = Get-Process powershell | Where-Object { $_.MainWindowTitle -eq 'CrispSink' } | Select-Object -First 1
+if (-not $p) { 'nosink'; exit }
+for ($i=0; $i -lt 6; $i++) {
+  [W]::keybd_event(0x12,0,0,[UIntPtr]::Zero); [W]::keybd_event(0x12,0,2,[UIntPtr]::Zero)
+  $fg = [W]::GetForegroundWindow(); $ft = [W]::GetWindowThreadProcessId($fg, [IntPtr]::Zero); $me = [W]::GetCurrentThreadId()
+  [W]::AttachThreadInput($me, $ft, $true) | Out-Null
+  [W]::ShowWindow($p.MainWindowHandle, 9) | Out-Null; [W]::BringWindowToTop($p.MainWindowHandle) | Out-Null
+  [W]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+  [W]::AttachThreadInput($me, $ft, $false) | Out-Null
+  Start-Sleep -Milliseconds 150
+  $sb = New-Object Text.StringBuilder 64; [W]::GetWindowText([W]::GetForegroundWindow(), $sb, 64) | Out-Null
+  if ($sb.ToString() -eq 'CrispSink') { 'focused'; exit }
+}
+'failed'`;
+  const r = ps(focusScript);
+  if (!/focused/.test(r.stdout)) console.log('  (attenzione: focus sink non ottenuto: ' + r.stdout.trim() + ')');
+  await sleep(200);
 }
 const setClip = (text) => ps(`Set-Clipboard -Value '${text.replace(/'/g, "''")}'`);
 
+const sendKeys = (keys) => ps(`Add-Type -AssemblyName System.Windows.Forms; [Windows.Forms.SendKeys]::SendWait('${keys}')`, true);
 async function showPopup() {
-  spawn(electron, [root], { env: { ...process.env, CRISPBOARD_DATA_DIR: dataDir }, stdio: 'ignore', detached: true }).unref();
-  await sleep(1200);
+  sendKeys('^%v');
+  await sleep(500);
 }
 
 let popup;
@@ -147,7 +179,8 @@ try {
 
   // ---------- popup, ricerca, incolla ----------
   sink = spawn('powershell.exe', ['-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', sinkScript], { stdio: 'ignore' });
-  await sleep(2500);
+  for (let i = 0; i < 60 && !fs.existsSync(sinkFile); i++) await sleep(250);
+  await sleep(500);
   await focusSink();
   await showPopup();
   check('popup visibile dopo l\'attivazione', (await visible()) === 'visible');
@@ -254,9 +287,10 @@ try {
   await showPopup();
   await popup.eval(`document.querySelector('#q').focus()`);
   await sleep(300);
+  const firstRow = (await popup.eval(`document.querySelector('.row .line').textContent`)).slice(0, 12);
   await popup.key('1', { ctrl: true });
   await sleep(1000);
-  check('Ctrl+1 incolla la prima clip', sinkText().includes('MODIFICATO'), JSON.stringify(sinkText()));
+  check('Ctrl+1 incolla la prima clip', sinkText().includes(firstRow), firstRow + ' / ' + JSON.stringify(sinkText()));
 
   // ---------- cattura sospesa ----------
   await popup.eval(`window.crisp.invoke('settings:set',{connected:false}).then(()=>1)`);
@@ -274,12 +308,149 @@ try {
   await sleep(800);
   check('app esclusa non registrata', dbRows("SELECT 1 FROM clips WHERE preview LIKE '%app-esclusa%'").length === 0);
   await popup.eval(`window.crisp.invoke('settings:set',{excludeApps:[]}).then(()=>1)`);
+
+  // ---------- hotkey globale ----------
+  await focusSink();
+  sendKeys('^%v');
+  await sleep(1000);
+  check('hotkey globale Ctrl+Alt+V apre il popup', (await visible()) === 'visible');
+  await popup.shot('06-hotkey');
+
+  // ---------- incolla speciale (maiuscolo) ----------
+  setClip('beta due');
+  await sleep(900);
+  const betaId = dbRows("SELECT id FROM clips WHERE preview='beta due'")[0].id;
+  fs.writeFileSync(sinkFile, '');
+  await popup.eval(`window.crisp.invoke('clips:paste',{ids:[${betaId}],transform:'upper'}).then(()=>1)`);
+  await sleep(1000);
+  check('incolla speciale MAIUSCOLO', sinkText().includes('BETA DUE'), JSON.stringify(sinkText()));
+
+  // ---------- multi-incolla + salvataggio ----------
+  await popup.eval(`window.crisp.invoke('settings:set',{saveMultiPaste:true,multiSeparator:' | '}).then(()=>1)`);
+  await focusSink();
+  sendKeys('^%v');
+  await sleep(900);
+  const ids2 = dbRows("SELECT id FROM clips WHERE preview IN ('beta due','alpha uno MODIFICATO') ORDER BY id").map((r) => r.id);
+  await popup.eval(`window.crisp.invoke('clips:paste',{ids:${JSON.stringify(ids2)}}).then(()=>1)`);
+  await sleep(1000);
+  check('multi-incolla con separatore', /alpha uno MODIFICATO \| beta due/.test(sinkText()) || /beta due \| alpha uno MODIFICATO/.test(sinkText()), JSON.stringify(sinkText()));
+  check('multi-incolla salvato come nuova clip', dbRows("SELECT 1 FROM clips WHERE preview LIKE '% | %'").length === 1);
+
+  // ---------- ripristino formati nella clipboard ----------
+  ps(`Add-Type -AssemblyName System.Windows.Forms,System.Drawing; $b=New-Object Drawing.Bitmap 40,30; $g=[Drawing.Graphics]::FromImage($b); $g.Clear([Drawing.Color]::SteelBlue); [Windows.Forms.Clipboard]::SetImage($b)`, true);
+  await sleep(900);
+  ps(`Set-Clipboard -Path '${path.join(out, 'file-a.txt')}','${path.join(out, 'file-b.txt')}'`);
+  await sleep(900);
+  ps(`Set-Clipboard -Value '<b>grassetto</b> html' -AsHtml`);
+  await sleep(900);
+  const imgId = dbRows("SELECT id FROM clips WHERE kind='image'")[0].id;
+  await popup.eval(`window.crisp.invoke('clips:copy',{id:${imgId}}).then(()=>1)`);
+  await sleep(400);
+  let r = ps(`Add-Type -AssemblyName System.Windows.Forms; [Windows.Forms.Clipboard]::ContainsImage()`, true);
+  check('copia clip immagine: immagine nella clipboard', r.stdout.trim() === 'True', r.stdout + r.stderr);
+  const fileId = dbRows("SELECT id FROM clips WHERE kind='files'")[0].id;
+  await popup.eval(`window.crisp.invoke('clips:copy',{id:${fileId}}).then(()=>1)`);
+  await sleep(400);
+  r = ps(`(Get-Clipboard -Format FileDropList | ForEach-Object { $_.Name }) -join ','`);
+  check('copia clip file: CF_HDROP ripristinato', r.stdout.trim() === 'file-a.txt,file-b.txt', r.stdout + r.stderr);
+  const htmlId = dbRows("SELECT id FROM clips WHERE preview LIKE '%grassetto%'")[0].id;
+  await popup.eval(`window.crisp.invoke('clips:copy',{id:${htmlId}}).then(()=>1)`);
+  await sleep(400);
+  r = ps(`Add-Type -AssemblyName System.Windows.Forms; [Windows.Forms.Clipboard]::ContainsText([Windows.Forms.TextDataFormat]::Html)`, true);
+  check('copia clip html: formato HTML ripristinato', r.stdout.trim() === 'True', r.stdout + r.stderr);
+
+  // ---------- ricerca regex / wildcard / scope ----------
+  let res = await popup.eval(`window.crisp.invoke('clips:list',{query:String.raw\`^beta\\s\\w+$\`,mode:'regex'})`);
+  check('ricerca regex', res.total === 1, JSON.stringify(res.total));
+  res = await popup.eval(`window.crisp.invoke('clips:list',{query:'b*due',mode:'wildcard'})`);
+  check('ricerca wildcard', res.total >= 1, JSON.stringify(res.total));
+  res = await popup.eval(`window.crisp.invoke('clips:list',{query:'(',mode:'regex'})`);
+  check('regex non valida segnalata senza crash', !!res.error);
+
+  // ---------- sincronizzazione (loopback, entrambe le direzioni) ----------
+  const { default: nodeNet } = await import('node:net');
+  const { decrypt, encrypt, frame } = await import(pathToFileUrl(path.join(root, 'src', 'main', 'synccrypto.js')));
+  const got = await new Promise((resolve) => {
+    const srv = nodeNet.createServer((sock) => {
+      const ch = [];
+      sock.on('data', (d) => ch.push(d));
+      sock.on('end', () => { srv.close(); resolve(Buffer.concat(ch)); });
+    });
+    srv.listen(23998, '127.0.0.1', async () => {
+      await popup.eval(`window.crisp.invoke('settings:set',{syncPassword:'pw-test',friends:[{name:'locale',host:'127.0.0.1',port:23998,sendAll:false}]}).then(()=>1)`);
+      await popup.eval(`window.crisp.invoke('sync:send',{friendIndex:0,ids:[${betaId}]}).then(()=>1)`);
+    });
+  });
+  const plain = decrypt('pw-test', got.subarray(4).toString('utf8'));
+  check('sync: invio cifrato decifrabile dal destinatario', JSON.parse(plain).clips[0].preview === 'beta due', plain.slice(0, 80));
+
+  await popup.eval(`window.crisp.invoke('settings:set',{syncReceive:true,syncPort:23999,syncPassword:'pw-test'}).then(()=>1)`);
+  await sleep(500);
+  const incoming = JSON.stringify({ app: 'crispboard', version: 1, labels: [], clips: [{
+    created_at: Date.now(), kind: 'text', preview: 'da-remoto', search_text: 'da-remoto', hash: 'h-remoto', size: 9, pinned: 0,
+    labels: [], formats: [{ format: 'text', data: Buffer.from('da-remoto').toString('base64') }] }] });
+  await new Promise((resolve) => { const c = nodeNet.connect(23999, '127.0.0.1', () => c.end(frame(encrypt('pw-test', incoming)), resolve)); });
+  await sleep(800);
+  check('sync: ricezione cifrata importa la clip', dbRows("SELECT 1 FROM clips WHERE preview='da-remoto'").length === 1);
+  await new Promise((resolve) => { const c = nodeNet.connect(23999, '127.0.0.1', () => c.end(frame(encrypt('password-sbagliata', incoming.replace('da-remoto', 'intruso'))), resolve)); });
+  await sleep(800);
+  check('sync: password errata rifiutata', dbRows("SELECT 1 FROM clips WHERE preview='intruso'").length === 0);
+  await popup.eval(`window.crisp.invoke('settings:set',{syncReceive:false}).then(()=>1)`);
+
+  // ---------- buffer di copia ----------
+  await popup.eval(`window.crisp.invoke('settings:set',{cbCopy1:'Ctrl+Alt+1',cbPaste1:'Ctrl+Alt+2'}).then(()=>1)`);
+  await sleep(300);
+  fs.writeFileSync(sinkFile, '');
+  await popup.key('Escape');
+  await focusSink();
+  sendKeys('^a{DEL}');
+  await sleep(300);
+  sendKeys('testo-buffer');
+  await sleep(600);
+  sendKeys('^a');
+  sendKeys('^%1');
+  await sleep(1200);
+  const settingsNow = await popup.eval(`window.crisp.invoke('settings:get')`);
+  check('buffer di copia: salvato nello slot 1', !!settingsNow.bufferClips?.['1'] && dbRows('SELECT 1 FROM clips WHERE id=?', Number(settingsNow.bufferClips?.['1'])).length === 1, JSON.stringify(settingsNow.bufferClips));
+  sendKeys('{DEL}');
+  await sleep(400);
+  sendKeys('^%2');
+  await sleep(1200);
+  check('buffer di copia: incolla dallo slot 1', sinkText().includes('testo-buffer'), JSON.stringify(sinkText()));
+
+  // ---------- aspetto: tema chiaro e finestra impostazioni ----------
+  await popup.eval(`window.crisp.invoke('settings:set',{theme:'light'}).then(()=>1)`);
+  await sleep(500);
+  await focusSink();
+  sendKeys('^%v');
+  await sleep(900);
+  await popup.shot('07-light');
+  await popup.eval(`window.crisp.invoke('window:settings').then(()=>1)`);
+  await sleep(1500);
+  const tgs = await targets();
+  const st = tgs.find((x) => x.url.includes('settings.html'));
+  check('finestra impostazioni apre', !!st);
+  if (st) {
+    const sp = await Page.open(st.webSocketDebuggerUrl);
+    await sp.send('Page.enable');
+    for (const sec of ['general', 'history', 'buffers', 'sync', 'labels', 'data', 'about']) {
+      await sp.eval(`document.querySelector('#side [data-id="${sec}"]').click()`);
+      await sleep(400);
+      await sp.shot('settings-' + sec);
+      if (sec === 'labels') {
+        const lab = await sp.eval(`document.querySelectorAll('.lbl-row').length`);
+        check('impostazioni: sezione etichette elenca le etichette', lab >= 2, 'righe=' + lab);
+      }
+    }
+  }
+  await popup.eval(`window.crisp.invoke('settings:set',{theme:'system'}).then(()=>1)`);
 } catch (e) {
   check('esecuzione senza eccezioni', false, e.stack || String(e));
 } finally {
   try { sink?.kill(); ps(`Get-Process powershell | Where-Object { $_.MainWindowTitle -eq 'CrispSink' } | Stop-Process -Force`); } catch {}
   spawnSync('taskkill', ['/F', '/T', '/PID', String(app.pid)], { stdio: 'ignore' });
   fs.writeFileSync(path.join(out, 'app.log'), appLog);
+  if (results.some((r) => !r.ok)) console.log('--- app.log (coda) ---\n' + appLog.split('\n').slice(-15).join('\n'));
   const failed = results.filter((r) => !r.ok).length;
   console.log(`\n${results.length - failed}/${results.length} ok. Output in ${out}`);
   process.exit(failed ? 1 : 0);

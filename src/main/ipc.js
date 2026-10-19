@@ -168,6 +168,21 @@ function register(app_) {
   handle('data:delete-unused', () => { const n = store.deleteUnused(); changed(); toast(`Eliminate ${n} clip mai usate`); return n; });
   handle('data:stats', () => store.stats());
 
+  handle('sync:send', async ({ friendIndex, ids }) => {
+    const f = settings.get('friends')[friendIndex];
+    if (!f) throw new Error('Amico non trovato');
+    await app_.sync.send(f, ids);
+    toast(`Inviata a ${f.name || f.host}`);
+    return true;
+  });
+  handle('sync:test', async (friendIndex) => {
+    const f = settings.get('friends')[friendIndex];
+    if (!f) throw new Error('Amico non trovato');
+    await app_.sync.send(f, []);
+    toast(`Connessione a ${f.name || f.host} riuscita`);
+    return true;
+  });
+
   return { changed, toast };
 }
 

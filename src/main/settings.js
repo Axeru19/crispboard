@@ -38,6 +38,17 @@ const DEFAULTS = {
   pasteDelayMs: 60,
   confirmDelete: false,
 
+  // Buffer di copia (3): scorciatoie globali di copia/taglia/incolla in uno slot dedicato.
+  cbCopy1: '', cbCut1: '', cbPaste1: '', cbCopy2: '', cbCut2: '', cbPaste2: '', cbCopy3: '', cbCut3: '', cbPaste3: '',
+  bufferClips: {},
+
+  // Sincronizzazione LAN (cifrata con password condivisa)
+  syncReceive: false,
+  syncPort: 23443,
+  syncPassword: '',
+  syncAcceptToClipboard: true,
+  friends: [], // [{name, host, port, sendAll}]
+
   startWithWindows: false,
   showTray: true,
   searchMode: 'contains', // contains | regex | wildcard

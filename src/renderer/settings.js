@@ -76,6 +76,15 @@ const SECTIONS = [
       ] },
     ],
   },
+  {
+    id: 'buffers', title: 'Buffer di copia', icon: 'copy', lede: 'Tre slot indipendenti: copia o taglia nell’app attiva e incolla dallo slot con una scorciatoia globale. Premi Backspace in un campo per svuotarlo.',
+    groups: [1, 2, 3].map((n) => ({ title: `Buffer ${n}`, fields: [
+      { key: `cbCopy${n}`, type: 'hotkey', label: 'Copia nel buffer' },
+      { key: `cbCut${n}`, type: 'hotkey', label: 'Taglia nel buffer' },
+      { key: `cbPaste${n}`, type: 'hotkey', label: 'Incolla dal buffer' },
+    ] })),
+  },
+  { id: 'sync', title: 'Sincronizzazione', icon: 'export', custom: 'sync' },
   { id: 'labels', title: 'Etichette', icon: 'tag', custom: 'labels' },
   { id: 'data', title: 'Dati', icon: 'database', custom: 'data' },
   { id: 'about', title: 'Informazioni', icon: 'info', custom: 'about' },
@@ -124,6 +133,33 @@ async function renderLabels(sec) {
     <p class="note">Eliminando un’etichetta le clip restano: viene rimossa solo l’assegnazione.</p>`;
 }
 
+function renderSync(sec) {
+  const f = state.settings.friends || [];
+  content.innerHTML = `<h1>${sec.title}</h1><p class="lede">Invia clip ad altri PC della rete locale. Il traffico è cifrato (AES-256-GCM) con una password condivisa; chi non la conosce non può inviare né leggere nulla.</p>
+    <div class="fgroup"><h2>Ricezione</h2>
+      ${fieldHtml({ key: 'syncReceive', type: 'bool', label: 'Ricevi clip da altri PC', hint: 'Apre la porta indicata sulla rete locale. Windows potrebbe chiedere l’autorizzazione del firewall.' })}
+      ${fieldHtml({ key: 'syncPort', type: 'number', label: 'Porta', min: 1024, max: 65535 })}
+      ${fieldHtml({ key: 'syncPassword', type: 'text', label: 'Password condivisa', hint: 'Deve essere identica su tutti i PC.' })}
+      ${fieldHtml({ key: 'syncAcceptToClipboard', type: 'bool', label: 'Metti negli appunti le clip ricevute dagli amici', hint: 'Le clip da altri indirizzi vengono solo salvate nella cronologia.' })}
+    </div>
+    <div class="fgroup"><h2>Amici</h2>
+      ${f.length ? f.map((x, i) => `<div class="lbl-row friend" data-i="${i}" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 80px auto auto auto">
+        <input type="text" value="${esc(x.name)}" data-fk="name" placeholder="Nome" aria-label="Nome">
+        <input type="text" value="${esc(x.host)}" data-fk="host" placeholder="Indirizzo IP o nome PC" aria-label="Indirizzo">
+        <input type="number" value="${esc(x.port || 23443)}" data-fk="port" aria-label="Porta">
+        <label style="font-size:12px;color:var(--text-2);display:flex;gap:6px;align-items:center"><input class="switch" type="checkbox" role="switch" data-fk="sendAll" ${x.sendAll ? 'checked' : ''}>Invia tutto</label>
+        <button type="button" class="btn" data-fa="test">Prova</button>
+        <button type="button" class="icon-btn" data-fa="del" aria-label="Rimuovi">${window.icon('trash')}</button></div>`).join('') : '<p class="note">Nessun amico. Aggiungine uno per inviargli le clip dal menu contestuale.</p>'}
+      <div class="btns"><button type="button" class="btn primary" id="add-friend">${window.icon('plus')}Aggiungi amico</button></div>
+      <p class="note">“Invia tutto” spedisce automaticamente ogni nuova copia a quel PC.</p></div>`;
+}
+
+async function saveFriends(mut) {
+  const friends = JSON.parse(JSON.stringify(state.settings.friends || []));
+  mut(friends);
+  await save('friends', friends);
+}
+
 async function renderData(sec) {
   const s = await api('data:stats');
   content.innerHTML = `<h1>${sec.title}</h1><p class="lede">Database e manutenzione. Percorso: <code>${esc(state.meta.dbPath)}</code></p>
@@ -159,6 +195,7 @@ function renderSection() {
   const sec = SECTIONS.find((s) => s.id === state.section) || SECTIONS[0];
   $$('#side button').forEach((b) => b.setAttribute('aria-current', b.dataset.id === sec.id ? 'page' : 'false'));
   if (sec.custom === 'labels') return renderLabels(sec);
+  if (sec.custom === 'sync') return renderSync(sec);
   if (sec.custom === 'data') return renderData(sec);
   if (sec.custom === 'about') return renderAbout(sec);
   content.innerHTML = `<h1>${sec.title}</h1><p class="lede">${esc(sec.lede)}</p>` +
@@ -179,6 +216,11 @@ async function save(key, value) {
 
 content.addEventListener('change', (e) => {
   const t = e.target;
+  if (t.dataset.fk) {
+    const i = Number(t.closest('.friend').dataset.i);
+    saveFriends((fr) => { fr[i][t.dataset.fk] = t.type === 'checkbox' ? t.checked : t.type === 'number' ? Number(t.value) : t.value.trim(); });
+    return;
+  }
   if (t.dataset.hk || !t.dataset.key) return;
   save(t.dataset.key, parseValue(t));
 });
@@ -186,6 +228,7 @@ content.addEventListener('keydown', async (e) => {
   const t = e.target;
   if (!t.dataset?.hk) return;
   e.preventDefault();
+  if (e.key === 'Backspace' || e.key === 'Delete') { t.value = ''; await save(t.dataset.key, ''); return; }
   const a = accel(e);
   if (!a) return;
   t.value = a;
@@ -194,8 +237,15 @@ content.addEventListener('keydown', async (e) => {
 });
 
 content.addEventListener('click', async (e) => {
-  const t = e.target.closest('[data-act],[data-d],#new-label');
+  const t = e.target.closest('[data-act],[data-d],[data-fa],#new-label,#add-friend');
   if (!t) return;
+  if (t.id === 'add-friend') { await saveFriends((fr) => fr.push({ name: '', host: '', port: 23443, sendAll: false })); renderSection(); return; }
+  if (t.dataset.fa) {
+    const i = Number(t.closest('.friend').dataset.i);
+    if (t.dataset.fa === 'del') { await saveFriends((fr) => fr.splice(i, 1)); renderSection(); return; }
+    try { await api('sync:test', i); } catch (err) { toast(`Connessione non riuscita: ${err.message}`, 'error'); }
+    return;
+  }
   if (t.id === 'new-label') {
     const labels = await api('labels:list');
     await api('labels:create', { name: `Etichetta ${labels.length + 1}` });

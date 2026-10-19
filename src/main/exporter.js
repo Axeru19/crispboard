@@ -22,8 +22,8 @@ function exportClips(store, ids = null) {
     labels: labels.map((l) => ({ name: l.name, color: l.color })), clips });
 }
 
-/** Restituisce {imported, skipped}. Le clip con hash già presente vengono saltate. */
-function importClips(store, json) {
+/** Restituisce {imported, skipped, ids}. Le clip con hash già presente vengono saltate (con bump:true risalgono in cima). */
+function importClips(store, json, { bump = false } = {}) {
   let doc;
   try { doc = JSON.parse(json); } catch { throw new Error('File non valido'); }
   if (doc.app !== 'crispboard' || !Array.isArray(doc.clips)) throw new Error('Formato non riconosciuto');
@@ -33,8 +33,14 @@ function importClips(store, json) {
   }
   let imported = 0;
   let skipped = 0;
+  const ids = [];
   for (const c of doc.clips) {
-    if (store.findByHash(c.hash)) { skipped++; continue; }
+    const ex = store.findByHash(c.hash);
+    if (ex) {
+      skipped++;
+      if (bump) { store.bump(ex.id); ids.push(ex.id); }
+      continue;
+    }
     const { id } = store.addClip({
       kind: c.kind, hash: c.hash, preview: c.preview, searchText: c.search_text, size: c.size,
       source: { exe: c.source_app, title: c.source_title, url: c.source_url },
@@ -46,8 +52,9 @@ function importClips(store, json) {
     const lids = (c.labels || []).map((n) => existing.get(String(n).toLowerCase())).filter(Boolean);
     if (lids.length) store.assignLabel([id], lids, 'add');
     imported++;
+    ids.push(id);
   }
-  return { imported, skipped };
+  return { imported, skipped, ids };
 }
 
 function exportText(store, ids) {

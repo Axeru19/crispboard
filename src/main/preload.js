@@ -8,7 +8,7 @@ const INVOKE = new Set([
   'settings:get', 'settings:set', 'settings:meta',
   'window:hide', 'window:settings', 'window:suppress-blur', 'app:quit', 'clipboard:toggle',
   'data:export', 'data:import', 'data:backup', 'data:restore', 'data:compact', 'data:clear',
-  'data:delete-unused', 'data:stats',
+  'data:delete-unused', 'data:stats', 'sync:send', 'sync:test',
 ]);
 const EVENTS = new Set(['list:changed', 'popup:show', 'popup:hide', 'settings:changed', 'settings:tab', 'toast']);
 

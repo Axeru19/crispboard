@@ -122,6 +122,13 @@ function sendPasteKeys(style = 'ctrl+v') {
   }
 }
 
+/** Invia Ctrl+C o Ctrl+X all'applicazione attiva. */
+function sendCopyKeys(cut = false) {
+  releaseHeldModifiers();
+  const vk = cut ? 0x58 : 0x43;
+  sendKeys([key(VK.CONTROL), key(vk), key(vk, true), key(VK.CONTROL, true)]);
+}
+
 /** Riporta in primo piano la finestra memorizzata. Il tocco ad ALT sblocca SetForegroundWindow. */
 function restoreForeground(hwnd) {
   if (!hwnd || !IsWindow(hwnd)) return false;
@@ -132,5 +139,5 @@ function restoreForeground(hwnd) {
 
 module.exports = {
   sequenceNumber, foregroundWindow, windowAlive, clipboardSource, caretScreenPos,
-  sendPasteKeys, restoreForeground, exeName, processExeOfWindow,
+  sendPasteKeys, sendCopyKeys, restoreForeground, exeName, processExeOfWindow,
 };
