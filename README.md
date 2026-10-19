@@ -48,7 +48,7 @@ Crispboard rebuilds the core of [Ditto](https://github.com/sabrogden/Ditto), the
 - **Privacy**: skips content flagged as private by password managers, and has an app exclusion list (KeePass, 1Password, Bitwarden, LastPass and Dashlane out of the box). Pause capture anytime from the tray.
 - **LAN sync**: push clips to other PCs on your network. End-to-end encrypted (AES-256-GCM) with a shared password. Off by default.
 - **History control**: maximum entries, expiry in days, duplicate handling, maximum clip size.
-- **Backup, export, import**: JSON export with labels and pins, SQLite backup and restore.
+- **Backup, export, import**: JSON export with labels and pins, SQLite backup and restore, and **import of your Ditto database** (`Ditto.db`: text, HTML, RTF, images and files; groups become labels, sticky clips become pins).
 - **Light and dark**: follows Windows, or choose.
 - **Light on the system**: starts hidden in the tray, no GPU process, opens instantly.
 
@@ -151,7 +151,7 @@ Not done yet (PRs welcome):
 - [ ] English (and other) localization
 - [ ] Diff between two clips
 - [ ] QR code / translate / email actions
-- [ ] Import Ditto themes and database
+- [ ] Import Ditto themes
 - [ ] Rebindable in-popup shortcuts
 - [ ] Code signing and a winget package
 - [ ] Pasting into apps running as administrator

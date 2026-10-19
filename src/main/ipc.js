@@ -1,11 +1,19 @@
 'use strict';
-const { ipcMain, dialog, app } = require('electron');
+const { ipcMain, dialog, app, nativeImage } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { Store } = require('./db');
 const { pasteClips, writeClipToClipboard } = require('./paste');
 const { TRANSFORM_LABELS } = require('./transforms');
 const { exportClips, importClips, exportText } = require('./exporter');
+const { importDitto } = require('./dittoimport');
+const { dibToPng } = require('./clipnative');
+
+const imageHelper = {
+  fromDib: (b) => (b ? dibToPng(b) : null),
+  info: (png) => nativeImage.createFromBuffer(png).getSize(),
+  thumb: (png) => { const i = nativeImage.createFromBuffer(png); return i.resize({ height: Math.min(96, i.getSize().height) }).toPNG(); },
+};
 
 const LABEL_COLORS = ['#ef6a5b', '#f0913a', '#e3c23b', '#5fbf6a', '#4aa8e8', '#7b86f0', '#e56fb0', '#8a9aa0'];
 const TEXT_LIMIT = 300000;
@@ -134,12 +142,29 @@ function register(app_) {
     toast('Esportazione completata');
     return true;
   });
-  handle('data:import', async () => {
-    const r = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Crispboard', extensions: ['json'] }] });
+  handle('data:import', async ({ ditto = false } = {}) => {
+    const dittoDir = path.join(app.getPath('appData'), 'Ditto');
+    const filters = [
+      { name: 'Database di Ditto o export di Crispboard', extensions: ['db', 'json'] },
+      { name: 'Tutti i file', extensions: ['*'] },
+    ];
+    if (ditto) filters.unshift({ name: 'Database di Ditto', extensions: ['db'] });
+    const r = await dialog.showOpenDialog({
+      properties: ['openFile'], filters,
+      ...(ditto && fs.existsSync(dittoDir) ? { defaultPath: dittoDir } : {}),
+    });
     if (r.canceled) return null;
-    const res = importClips(store, fs.readFileSync(r.filePaths[0], 'utf8'));
+    const file = r.filePaths[0];
+    if (/\.json$/i.test(file)) {
+      const res = importClips(store, fs.readFileSync(file, 'utf8'));
+      changed();
+      toast(`Importate ${res.imported} clip (${res.skipped} già presenti)`);
+      return res;
+    }
+    const res = importDitto(store, file, { image: imageHelper, descChars: settings.get('descChars') });
     changed();
-    toast(`Importate ${res.imported} clip (${res.skipped} già presenti)`);
+    const extra = [res.duplicates && `${res.duplicates} già presenti`, res.skipped && `${res.skipped} non supportate`].filter(Boolean).join(', ');
+    toast(`Importate ${res.imported} clip da Ditto${extra ? ` (${extra})` : ''}`);
     return res;
   });
   handle('data:backup', async () => {

@@ -168,7 +168,9 @@ async function renderData(sec) {
     <div><b>${fmtBytes(s.dataBytes)}</b><span>dati</span></div><div><b>${fmtBytes(s.fileBytes)}</b><span>file database</span></div></div>
     <div class="fgroup"><h2>Esporta e importa</h2><div class="btns">
       <button type="button" class="btn" data-d="export">${window.icon('export')}Esporta cronologia</button>
-      <button type="button" class="btn" data-d="import">${window.icon('upload-simple')}Importa</button></div></div>
+      <button type="button" class="btn" data-d="import">${window.icon('tray-arrow-down')}Importa file</button>
+      <button type="button" class="btn" data-d="ditto">${window.icon('tray-arrow-down')}Importa da Ditto</button></div>
+      <p class="note">Il database di Ditto si trova di solito in <code>%APPDATA%\Ditto\Ditto.db</code>. Vengono importati testo, HTML, RTF, immagini e file; i gruppi diventano etichette, le clip sticky diventano pin. Ditto non viene modificato.</p></div>
     <div class="fgroup"><h2>Backup</h2><div class="btns">
       <button type="button" class="btn" data-d="backup">${window.icon('download-simple')}Crea backup</button>
       <button type="button" class="btn" data-d="restore">${window.icon('arrow-counter-clockwise')}Ripristina backup</button>
@@ -264,6 +266,7 @@ content.addEventListener('click', async (e) => {
   switch (t.dataset.d) {
     case 'export': await api('data:export'); break;
     case 'import': await api('data:import'); renderSection(); break;
+    case 'ditto': await api('data:import', { ditto: true }); renderSection(); break;
     case 'backup': await api('data:backup'); break;
     case 'restore': await api('data:restore'); break;
     case 'compact': await api('data:compact'); renderSection(); break;

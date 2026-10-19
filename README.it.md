@@ -48,7 +48,7 @@ Crispboard rifà da zero il nucleo di [Ditto](https://github.com/sabrogden/Ditto
 - **Privacy**: ignora i contenuti segnati come privati dai gestori di password e ha un elenco di app escluse (KeePass, 1Password, Bitwarden, LastPass, Dashlane già inclusi). Sospendi la cattura dal tray quando vuoi.
 - **Sincronizzazione in LAN**: invia clip ad altri PC della rete, cifrate (AES-256-GCM) con password condivisa. Disattivata di default.
 - **Controllo della cronologia**: numero massimo, scadenza in giorni, duplicati, dimensione massima.
-- **Backup, export, import**: export JSON con etichette e pin, backup e ripristino SQLite.
+- **Backup, export, import**: export JSON con etichette e pin, backup e ripristino SQLite e **import del database di Ditto** (`Ditto.db`: testo, HTML, RTF, immagini e file; i gruppi diventano etichette, le clip sticky diventano pin).
 - **Chiaro e scuro**: segue Windows, oppure scegli tu.
 
 <p align="center">
@@ -139,7 +139,7 @@ Da fare (le PR sono benvenute):
 - [ ] Localizzazione inglese (e altre)
 - [ ] Diff tra due clip
 - [ ] QR code / traduzione / invio email
-- [ ] Import di temi e database di Ditto
+- [ ] Import dei temi di Ditto
 - [ ] Scorciatoie interne riassegnabili
 - [ ] Firma del codice e pacchetto winget
 - [ ] Incolla in app eseguite come amministratore

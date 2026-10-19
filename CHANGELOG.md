@@ -2,6 +2,15 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Import of the Ditto database (`Ditto.db`): text, HTML, RTF, images and files, original dates and "never delete" flag, groups as labels, sticky clips as pins. Available from *Impostazioni → Dati → Importa da Ditto* and from the import menu. Ditto's file is not modified.
+
+### Fixed
+- The import dialog only showed `.json` files; it now accepts Ditto `.db` and Crispboard `.json` exports.
+- The import button used an upload (export-like) icon; it now uses a download-into-tray icon.
+
 ## [1.0.0-alpha.2] - 2026-10-19
 
 ### Added

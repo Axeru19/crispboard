@@ -456,7 +456,7 @@ function moreMenu() {
     { label: state.settings.connected === false ? 'Riprendi cattura' : 'Sospendi cattura', icon: state.settings.connected === false ? 'play' : 'pause', onClick: () => api('clipboard:toggle') },
     { sep: true },
     { label: 'Esporta cronologia…', icon: 'export', onClick: () => api('data:export') },
-    { label: 'Importa…', icon: 'upload-simple', onClick: () => api('data:import') },
+    { label: 'Importa… (Ditto o Crispboard)', icon: 'tray-arrow-down', onClick: () => api('data:import') },
     { sep: true },
     { label: 'Impostazioni', icon: 'gear-six', shortcut: 'Ctrl+,', onClick: () => api('window:settings') },
     { label: 'Esci da Crispboard', icon: 'x', onClick: () => api('app:quit') },
