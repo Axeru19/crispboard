@@ -1,6 +1,6 @@
 {
   "name": "crispboard",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "description": "Fast, keyboard-first clipboard manager for Windows",
   "main": "src/main/index.js",
   "private": true,

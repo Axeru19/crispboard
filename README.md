@@ -11,13 +11,15 @@ Everything you copy, one hotkey away. Search it, edit it, label it, pin it, past
 [![License: MIT](https://img.shields.io/badge/license-MIT-3ddc97.svg)](LICENSE)
 ![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3b3b3b.svg)
 
-[Download](https://github.com/Axeru19/crispboard/releases/latest) · [Italiano](README.it.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+[Download](https://github.com/Axeru19/crispboard/releases) · [Italiano](README.it.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
 <img src="docs/img/popup-dark.png" alt="Crispboard popup, dark theme" width="720">
 
 </div>
 
 ---
+
+> **Alpha.** Crispboard is in early alpha: it works day to day in our tests, but expect bugs and breaking changes. Back up your history (Settings → Dati) before updating, and please [report issues](https://github.com/Axeru19/crispboard/issues).
 
 ## Why Crispboard
 
@@ -59,7 +61,7 @@ Crispboard rebuilds the core of [Ditto](https://github.com/sabrogden/Ditto), the
 
 ### Download (recommended)
 
-1. Grab `Crispboard-win-x64.zip` from the [latest release](https://github.com/Axeru19/crispboard/releases/latest).
+1. Grab `Crispboard-win-x64.zip` from the [releases page](https://github.com/Axeru19/crispboard/releases).
 2. Unzip anywhere and run `Crispboard.exe`.
 3. Press `Ctrl+Alt+V`.
 

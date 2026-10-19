@@ -11,13 +11,15 @@ Tutto ciò che copi, a una scorciatoia di distanza: cercalo, modificalo, etichet
 [![Licenza: MIT](https://img.shields.io/badge/licenza-MIT-3ddc97.svg)](LICENSE)
 ![Piattaforma: Windows 10/11](https://img.shields.io/badge/piattaforma-Windows%2010%20%7C%2011-3b3b3b.svg)
 
-[Scarica](https://github.com/Axeru19/crispboard/releases/latest) · [English](README.md) · [Changelog](CHANGELOG.md) · [Contribuire](CONTRIBUTING.md)
+[Scarica](https://github.com/Axeru19/crispboard/releases) · [English](README.md) · [Changelog](CHANGELOG.md) · [Contribuire](CONTRIBUTING.md)
 
 <img src="docs/img/popup-dark.png" alt="Popup di Crispboard, tema scuro" width="720">
 
 </div>
 
 ---
+
+> **Alpha.** Crispboard è in alpha: nei test funziona, ma aspettati bug e modifiche incompatibili. Fai un backup della cronologia (Impostazioni → Dati) prima di aggiornare e [segnala i problemi](https://github.com/Axeru19/crispboard/issues).
 
 ## Perché Crispboard
 
@@ -58,7 +60,7 @@ Crispboard rifà da zero il nucleo di [Ditto](https://github.com/sabrogden/Ditto
 
 ### Download (consigliato)
 
-1. Scarica `Crispboard-win-x64.zip` dall'[ultima release](https://github.com/Axeru19/crispboard/releases/latest).
+1. Scarica `Crispboard-win-x64.zip` dall'[pagina delle release](https://github.com/Axeru19/crispboard/releases).
 2. Estrailo dove vuoi ed esegui `Crispboard.exe`.
 3. Premi `Ctrl+Alt+V`.
 
