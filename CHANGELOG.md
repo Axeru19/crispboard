@@ -2,7 +2,7 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0-alpha.5] - 2026-10-19
 
 ### Fixed
 - Shortcuts are now independent of the keyboard layout. They are built from the key's Windows virtual key (not its physical position), so the key labelled `Z` on a German keyboard or `A` on an AZERTY one is the key you get, and the field shows the character printed on your key (`Ctrl+À`, `Alt+ß`, `Ctrl+Ф`) instead of its US name. The ISO `<` key and IME input cannot be used in a global shortcut and now say so.
@@ -57,6 +57,7 @@ First public pre-release. Expect rough edges: please report bugs.
 - Pasting into apps running as administrator is not supported.
 - Executable is not code-signed.
 
+[1.0.0-alpha.5]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.5
 [1.0.0-alpha.4]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.4
 [1.0.0-alpha.3]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.2
