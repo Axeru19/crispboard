@@ -11,7 +11,7 @@ const regular = [
   'gear-six', 'x', 'check', 'plus', 'copy', 'arrow-elbow-down-left', 'keyboard', 'clipboard-text', 'dots-three',
   'file-text', 'eye', 'arrow-counter-clockwise', 'floppy-disk', 'export', 'upload-simple', 'download-simple',
   'pause', 'play', 'text-aa', 'lock-simple', 'caret-down', 'sliders-horizontal', 'database', 'palette',
-  'clock-counter-clockwise', 'prohibit', 'info', 'warning-circle', 'arrow-up', 'arrow-down', 'text-aa',
+  'clock-counter-clockwise', 'layout', 'columns', 'rows', 'list', 'prohibit', 'info', 'warning-circle', 'arrow-up', 'arrow-down', 'text-aa',
 ];
 const fill = ['push-pin'];
 

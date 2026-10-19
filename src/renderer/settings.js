@@ -66,7 +66,7 @@ const SECTIONS = [
       ] },
       { title: 'Lista', fields: [
         { key: 'linesPerRow', type: 'number', label: 'Righe di testo per clip', min: 1, max: 5 },
-        { key: 'showPreview', type: 'bool', label: 'Mostra anteprima' },
+        { key: 'layout', type: 'select', label: 'Layout', hint: 'Posizione dell’anteprima. Si cambia anche dal pulsante in alto nella finestra.', options: [['auto', 'Automatico'], ['side', 'Anteprima a destra'], ['stack', 'Anteprima sotto'], ['list', 'Solo lista']] },
         { key: 'showIndexes', type: 'bool', label: 'Mostra i numeri Ctrl+1…0' },
         { key: 'markPasted', type: 'bool', label: 'Segna le clip già incollate' },
       ] },

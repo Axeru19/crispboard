@@ -2,6 +2,7 @@ import { $, $$, esc, highlight, relTime, fmtBytes, looksLikeCode, isUrl, appLabe
 import { showMenu, closeMenus, menuOpen, toast, showLabelPicker } from './ui.js';
 
 const PAGE = 200;
+const LAYOUTS = [['auto', 'Automatico', 'layout'], ['side', 'Anteprima a destra', 'columns'], ['stack', 'Anteprima sotto', 'rows'], ['list', 'Solo lista', 'list']];
 
 const state = {
   rows: [],
@@ -182,10 +183,10 @@ function renderCount() {
 // ---------- render: anteprima ----------
 function renderPreview() {
   const d = state.detail;
-  const show = state.settings.showPreview !== false;
-  el.body.classList.toggle('no-preview', !show);
-  $('#btn-preview').setAttribute('aria-pressed', String(show));
-  if (!show) return;
+  const layout = state.settings.layout || 'auto';
+  el.body.dataset.layout = layout;
+  $('#btn-layout').innerHTML = ic(LAYOUTS.find(([k]) => k === layout)[2]);
+  if (layout === 'list') return;
   if (!d) {
     el.preview.innerHTML = `<div class="empty">${ic('eye')}<strong>Nessuna selezione</strong></div>`;
     return;
@@ -515,7 +516,13 @@ el.labelbar.addEventListener('click', (e) => {
   const c = e.target.closest('.chip[data-id]');
   if (c) { toggleLabelFilter(Number(c.dataset.id)); focusInput(); }
 });
-$('#btn-preview').addEventListener('click', () => { api('settings:set', { showPreview: !(state.settings.showPreview !== false) }); focusInput(); });
+function layoutMenu() {
+  const r = $('#btn-layout').getBoundingClientRect();
+  const cur = state.settings.layout || 'auto';
+  showMenu(LAYOUTS.map(([k, label, icon]) => ({ label, icon, tick: k === cur, onClick: () => api('settings:set', { layout: k }) })),
+    r.right - 220, r.bottom + 4, { restoreFocus: focusInput });
+}
+$('#btn-layout').addEventListener('click', layoutMenu);
 $('#btn-more').addEventListener('click', moreMenu);
 
 el.list.addEventListener('mousedown', (e) => { if (e.target.closest('.row')) e.preventDefault(); });
@@ -604,7 +611,7 @@ document.addEventListener('keydown', async (e) => {
     return;
   }
   if (ctrl && k === ',') { e.preventDefault(); api('window:settings'); return; }
-  if (k === 'F3') { e.preventDefault(); api('settings:set', { showPreview: !(state.settings.showPreview !== false) }); return; }
+  if (k === 'F3') { e.preventDefault(); api('settings:set', { layout: state.settings.layout === 'list' ? 'auto' : 'list' }); return; }
 
   if (k === 'ArrowDown') { e.preventDefault(); if (e.altKey) moveClip('down'); else moveCursor(state.cursor + 1, { extend: e.shiftKey }); }
   else if (k === 'ArrowUp') { e.preventDefault(); if (e.altKey) moveClip('up'); else moveCursor(state.cursor - 1, { extend: e.shiftKey }); }
@@ -666,7 +673,6 @@ function applySettings(s) {
 // ---------- avvio ----------
 async function init() {
   $('#ic-search').innerHTML = ic('magnifying-glass');
-  $('#btn-preview').innerHTML = ic('eye');
   $('#btn-more').innerHTML = ic('dots-three');
   state.meta = await api('settings:meta');
   state.settings = await api('settings:get');

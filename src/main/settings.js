@@ -13,7 +13,7 @@ const DEFAULTS = {
   theme: 'system', // system | light | dark
   language: 'it',
   linesPerRow: 2,
-  showPreview: true,
+  layout: 'auto', // auto | side | stack | list
   showIndexes: true,
   markPasted: true,
 
@@ -62,7 +62,9 @@ function separatorValue(s) {
 class Settings {
   constructor(store) {
     this.store = store;
-    this.values = { ...DEFAULTS, ...store.getSettings() };
+    const saved = store.getSettings();
+    this.values = { ...DEFAULTS, ...saved };
+    if (saved.showPreview === false && !saved.layout) this.values.layout = 'list'; // migrazione da <= alpha.2
   }
 
   get(key) { return this.values[key]; }
