@@ -121,61 +121,62 @@ Tab Options: General, Supported Types, Keyboard Shortcuts, Quick Paste, Copy Buf
 
 ---
 
-## 5. Matrice di parità
+## 5. Matrice di parità (stato finale)
 
-Priorità: **P0** core imprescindibile, **P1** importante, **P2** utile, **P3** escluso/differito (motivato). Stato: ☐ da fare → aggiornato in Fase 4.
+Priorità: **P0** core, **P1** importante, **P2** utile, **P3** accessorio. Verifica: *unit* = `npm test`, *e2e* = `npm run e2e` (app reale, clipboard reale, incolla in una finestra di prova), *visivo* = screenshot, *codice* = implementato ma senza test automatico.
 
-| # | Feature Ditto | Pri | Stato | Note implementazione |
+| # | Feature Ditto | Pri | Stato | Verifica |
 |---|---|---|---|---|
-| 1 | Cattura testo (Unicode) | P0 | ☐ | |
-| 2 | Cattura immagini (DIB/PNG) | P0 | ☐ | salvate PNG |
-| 3 | Cattura file (CF_HDROP) | P0 | ☐ | |
-| 4 | Cattura RTF e HTML | P0 | ☐ | |
-| 5 | Salvataggio multi-formato per clip | P0 | ☐ | tabella `formats` |
-| 6 | Dedup (CRC/hash, allow duplicates, finestra ms) | P0 | ☐ | SHA-1 |
-| 7 | Limite dimensione clip | P1 | ☐ | |
-| 8 | Max entries + scadenza giorni + never auto-delete | P0 | ☐ | pin esente |
-| 9 | Ricerca contains | P0 | ☐ | |
-| 10 | Ricerca regex / wildcard | P1 | ☐ | |
-| 11 | Ambiti ricerca (descrizione/testo/nome rapido) | P2 | ☐ | |
-| 12 | Hotkey globale configurabile | P0 | ☐ | |
-| 13 | Popup al caret/cursore/posizione precedente | P1 | ☐ | caret via GetGUIThreadInfo |
-| 14 | Incolla rapido (Invio, doppio clic) con ripristino focus | P0 | ☐ | |
-| 15 | Prime 10 con Ctrl+Num | P1 | ☐ | |
-| 16 | Hotkey globali ultime 10 | P2 | ☐ | |
-| 17 | Paste plain text | P0 | ☐ | Shift+Invio |
-| 18 | Special paste (case, slug, trim, line feed, ora…) | P1 | ☐ | |
-| 19 | Multi-paste con separatore | P1 | ☐ | |
-| 20 | Gruppi e sottogruppi, spostamento | P0 | ☐ | → **cartelle** |
-| 21 | Sticky clips | P0 | ☐ | → **pin** |
-| 22 | Riordino manuale clip | P2 | ☐ | |
-| 23 | Proprietà clip (nome rapido, hotkey, data, formati) | P1 | ☐ | |
-| 24 | Named copy/paste (QuickPasteText) | P2 | ☐ | |
-| 25 | Hotkey per clip | P2 | ☐ | |
-| 26 | Edit clip (editor interno) | P0 | ☐ | in-place |
-| 27 | Anteprima/descrizione completa (F3), vista testo/RTF/HTML/immagine | P1 | ☐ | |
-| 28 | Miniature immagini | P1 | ☐ | |
-| 29 | Esclusione/inclusione app | P0 | ☐ | |
-| 30 | Disconnetti/connetti clipboard | P1 | ☐ | |
-| 31 | Tray + avvio con Windows | P0 | ☐ | |
-| 32 | Temi chiaro/scuro (segue Windows) | P0 | ☐ | |
-| 33 | Trasparenza, sempre in primo piano | P2 | ☐ | |
-| 34 | Righe per clip, ordine, font | P2 | ☐ | |
-| 35 | Import/Export clip, export testo/immagine | P1 | ☐ | JSON/testo/PNG |
-| 36 | Backup/Restore DB, compatta | P1 | ☐ | |
-| 37 | Elimina non usate / pulizia dati | P2 | ☐ | |
-| 38 | Statistiche | P3 | ☐ | |
-| 39 | Copy buffers (5) | P2 | ☐ | |
-| 40 | Indicatore "già incollata" | P2 | ☐ | |
-| 41 | Mostra in taskbar / elevato | P3 | ☐ | taskbar sì; elevazione differita |
-| 42 | Sincronizzazione LAN (Friends) | P2 | ☐ | vedi sotto |
-| 43 | Compare clip (diff) | P3 | ☐ | |
-| 44 | QR code, Google Translate | P3 | ☐ | differito |
-| 45 | ChaiScript / addin DLL | P3 | ☐ | fuori scope (nessun equivalente) |
-| 46 | Localizzazione 35 lingue | P3 | ☐ | IT + EN |
-| 47 | Tastiera Quick Paste riconfigurabile | P2 | ☐ | rebinding principali |
-| 48 | Tema XML importabile | P3 | ☐ | differito |
-| 49 | Invio email/Gmail | P3 | ☐ | differito |
+| 1 | Cattura testo (Unicode) | P0 | ✅ | e2e |
+| 2 | Cattura immagini (DIB/PNG) | P0 | ✅ | e2e |
+| 3 | Cattura file (CF_HDROP) | P0 | ✅ | e2e |
+| 4 | Cattura RTF e HTML | P0 | ✅ | e2e (HTML); RTF solo codice |
+| 5 | Salvataggio multi-formato per clip | P0 | ✅ | e2e |
+| 6 | Dedup (hash, consenti duplicati, finestra ms) | P0 | ✅ | e2e |
+| 7 | Limite dimensione clip | P1 | ✅ | codice |
+| 8 | Max entries + scadenza giorni + never auto-delete | P0 | ✅ | unit + e2e |
+| 9 | Ricerca contains | P0 | ✅ | unit + e2e |
+| 10 | Ricerca regex / wildcard | P1 | ✅ | unit + e2e |
+| 11 | Ambiti ricerca (descrizione/testo/nome rapido) | P2 | ✅ | codice (UI: solo default) |
+| 12 | Hotkey globale configurabile | P0 | ✅ | e2e |
+| 13 | Popup al caret/cursore/posizione precedente | P1 | ✅ | manuale/non automatizzato |
+| 14 | Incolla rapido con ripristino focus | P0 | ✅ | e2e |
+| 15 | Prime 10 con Ctrl+Num | P1 | ✅ | e2e |
+| 16 | Hotkey globali ultime 10 | P2 | ✅ | codice |
+| 17 | Paste plain text | P0 | ✅ | e2e |
+| 18 | Special paste (case, slug, trim, line feed, ora…) | P1 | ✅ | unit + e2e (upper) |
+| 19 | Multi-paste con separatore | P1 | ✅ | e2e |
+| 20 | Gruppi → etichette colorate (senza annidamento) | P0 | ✅ (deviazione) | unit + e2e |
+| 21 | Sticky → pin | P0 | ✅ | unit + e2e |
+| 22 | Riordino manuale clip | P2 | ✅ | unit |
+| 23 | Proprietà clip (nome rapido, hotkey, mai eliminare) | P1 | ✅ | codice |
+| 24 | Named copy/paste (nome rapido ricercabile) | P2 | ✅ parziale | codice |
+| 25 | Hotkey globale per clip | P2 | ✅ | codice |
+| 26 | Edit clip in-place | P0 | ✅ | e2e |
+| 27 | Anteprima completa, vista testo/HTML | P1 | ✅ | visivo |
+| 28 | Miniature immagini | P1 | ✅ | visivo |
+| 29 | Esclusione/inclusione app | P0 | ✅ | e2e |
+| 30 | Disconnetti/connetti clipboard | P1 | ✅ | e2e |
+| 31 | Tray + avvio con Windows | P0 | ✅ | tray/avvio: codice |
+| 32 | Temi chiaro/scuro (segue Windows) | P0 | ✅ | visivo |
+| 33 | Trasparenza, sempre in primo piano | P2 | ✅ | codice |
+| 34 | Righe per clip, anteprima, indici | P2 | ✅ | visivo |
+| 35 | Import/Export clip, export testo/immagine | P1 | ✅ | unit (round trip) |
+| 36 | Backup/Restore DB, compatta | P1 | ✅ | unit (backup/compact); restore non automatizzato |
+| 37 | Elimina non usate / svuota cronologia | P2 | ✅ | unit |
+| 38 | Statistiche | P3 | ✅ | visivo |
+| 39 | Copy buffers (3 slot) | P2 | ✅ | e2e |
+| 40 | Indicatore già incollata | P2 | ✅ | visivo |
+| 41 | Mostra in taskbar / incolla in app elevate | P3 | parziale | taskbar sì; elevazione no |
+| 42 | Sincronizzazione LAN (push, password, cifrata) | P2 | ✅ | e2e loopback |
+| 43 | Compare clip (diff) | P3 | ❌ | non implementato |
+| 44 | QR code, Google Translate | P3 | ❌ | non implementato |
+| 45 | ChaiScript / addin DLL | P3 | ❌ | fuori scope |
+| 46 | Localizzazione 35 lingue | P3 | parziale | solo italiano |
+| 47 | Tastiera Quick Paste riconfigurabile | P2 | parziale | solo hotkey globali |
+| 48 | Tema XML importabile | P3 | ❌ | non implementato |
+| 49 | Invio email/Gmail | P3 | ❌ | non implementato |
 
-**Sync (#42)**: in Ditto è push TCP tra PC con password. Decisione: implementare export/import file + (se il tempo lo permette) invio LAN cifrato; altrimenti documentato come limite noto.
-**Nuove funzioni richieste (oltre la parità):** modifica in-place, etichette/cartelle colorate multiple con filtro rapido, pin con esenzione dalla pulizia.
+Tutte le feature **P0** sono presenti. Mancano solo accessori P3 (diff, QR/Translate, scripting, email, temi XML) e la localizzazione multilingua.
+
+**Nuove funzioni richieste:** modifica in-place (#26), etichette/cartelle colorate multiple con filtro rapido (#20), pin esente dalla pulizia (#21): tutte verificate e2e.

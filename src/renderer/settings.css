@@ -33,9 +33,10 @@ body { user-select: text; }
 .lbl-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .lbl-row:last-child { border-bottom: 0; }
 .lbl-row .sw { width: 22px; height: 22px; border-radius: 50%; background: var(--c); border: 0; padding: 0; }
-.lbl-row input { height: 30px; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 0 8px; min-width: 0; }
-.lbl-row input:hover { border-color: var(--border); }
-.lbl-row input:focus { border-color: var(--accent); outline: 0; background: var(--surface); }
+.lbl-row input[type='text'], .lbl-row input[type='number'] { height: 30px; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 0 8px; min-width: 0; }
+.lbl-row input[type='text']:hover, .lbl-row input[type='number']:hover { border-color: var(--border); }
+.friend input[type='text'], .friend input[type='number'] { border-color: var(--border); background: var(--surface); }
+.lbl-row input[type='text']:focus, .lbl-row input[type='number']:focus { border-color: var(--accent); outline: 0; background: var(--surface); }
 .lbl-row .count { font: 500 11.5px var(--mono); color: var(--text-3); }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 24px; margin-bottom: 22px; }
 .stats div { display: grid; gap: 2px; }

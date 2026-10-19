@@ -10,6 +10,10 @@ const ROOT = path.join(__dirname, '..', '..');
 const DATA_DIR = process.env.CRISPBOARD_DATA_DIR || path.join(app.getPath('appData'), 'Crispboard');
 app.setPath('userData', path.join(DATA_DIR, 'electron'));
 
+// Un gestore di clipboard non ha bisogno della GPU: meno processi e meno memoria.
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=96');
+
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
 
 const { Store } = require('./db');

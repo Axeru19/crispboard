@@ -106,3 +106,22 @@ test('sync: cifratura AES-GCM, password errata rifiutata, manomissione rilevata'
   m.data = Buffer.from('xxxxxxxxxxxxxxxxxxx').toString('base64');
   assert.throws(() => decrypt('segreta', JSON.stringify(m)));
 });
+
+test('backup su file e riapertura', () => {
+  const os = require('node:os');
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'crisp-'));
+  const s = new Store(path.join(dir, 'a.db'));
+  const id = s.addClip(mk('da salvare')).id;
+  s.setPinned(id, true);
+  const bk = path.join(dir, 'b.db');
+  s.backupTo(bk);
+  s.close();
+  const r = new Store(bk);
+  assert.equal(r.list().total, 1);
+  assert.equal(r.list().rows[0].pinned, 1);
+  r.compact();
+  r.close();
+  fs.rmSync(dir, { recursive: true, force: true });
+});

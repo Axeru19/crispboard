@@ -10,7 +10,8 @@ Scena fisica: una persona nel mezzo di un documento, a qualsiasi ora, preme un t
 | Scelta | Motivazione |
 |---|---|
 | **Electron 44** (Node 24) | Nessun toolchain nativo sul PC (no .NET SDK, Rust, MSVC): Electron è l'unica via a una UI ricca già eseguibile. Mitigazione del peso: una sola finestra creata una volta e nascosta (riapertura < 50 ms), nessun framework UI, renderer in JS/CSS nativi senza bundler. |
-| **`node:sqlite`** (built-in in Node 24) | Zero dipendenze native da compilare, WAL, FTS non necessario (ricerca con `LIKE`/regex su colonna normalizzata). |
+| **`node:sqlite`** (built-in in Node 24) | Zero dipendenze native da compilare, WAL, ricerca con `LIKE`/regex su colonna normalizzata. |
+| **Clipboard via koffi, non API Electron** | Electron 44 ha reso la clipboard asincrona e senza formati arbitrari (niente CF_HDROP, RTF, HTML Format). Letture/scritture Win32 dirette con `OpenClipboard`/`EnumClipboardFormats`. |
 | **koffi** (FFI prebuilt) | Chiamate Win32 senza compilatore: `GetClipboardSequenceNumber`, `SendInput`, `GetForegroundWindow`, `GetGUIThreadInfo` (caret), `QueryFullProcessImageNameW` (app sorgente), `SetForegroundWindow`. |
 | **Geist + Geist Mono** (`@fontsource-variable`) | Font self-hosted, nessuna richiesta di rete. |
 | **Phosphor Icons** (`@phosphor-icons/core`, SVG inline) | Una sola famiglia, stroke uniforme. |
@@ -47,7 +48,7 @@ Retention: `DELETE FROM clips WHERE pinned=0 AND never_delete=0 AND (…oltre ma
 ### Deviazioni consapevoli da Ditto (annotate)
 1. **Gruppi → etichette** (molti-a-molti, colorate). Niente sottogruppi annidati: l'assegnazione multipla e il filtro rapido li rendono superflui.
 2. **Sticky → pin** con ordine proprio, in cima, esente da pulizia (richiesto).
-3. **Friends (sync LAN)**: sostituito da export/import; vedi README per i limiti.
+3. **Friends (sync LAN)**: reimplementato come push TCP cifrato AES-256-GCM con password condivisa.
 4. **ChaiScript/addin DLL**: non replicati.
 
 ---
@@ -81,7 +82,7 @@ Etichette (8): corallo 25, arancio 55, giallo 95, verde 145, azzurro 235, indaco
 Geist Variable (UI) e Geist Mono (anteprime codice, scorciatoie, numeri). Scala con rapporto ≥ 1.25: 11 / 12.5 / 14 / 17 / 22 px. Corpo righe 13.5 px / 1.4; meta 11.5 px. Tabular figures per orari e contatori. Larghezza testo anteprima ≤ 75ch.
 
 ### Spaziatura e forma
-Base 4 px; scala 4, 8, 12, 16, 24. Padding riga 10×12 (ritmo variabile: header sezione 16/8). **Raggi (regola unica)**: finestra 14, controlli/righe 8, chip e badge pillola (999). Ombra finestra tinta sul fondo: `0 20px 60px oklch(0.1 0.02 200 / 0.45)`; nessuna ombra altrove, solo bordi 1 px.
+Base 4 px; scala 4, 8, 12, 16, 24. Padding riga 10×12 (ritmo variabile: header sezione 16/8). **Raggi (regola unica)**: finestra = angoli nativi di Windows 11, controlli/righe 8, chip e badge pillola (999). Ombra finestra tinta sul fondo: `0 20px 60px oklch(0.1 0.02 200 / 0.45)`; nessuna ombra altrove, solo bordi 1 px.
 
 ### Layout (finestra 780×520, frameless, ridimensionabile)
 ```
@@ -95,7 +96,7 @@ Base 4 px; scala 4, 8, 12, 16, 24. Padding riga 10×12 (ritmo variabile: header 
 │ 2   riga                      │  meta: app · ora · dimensione │
 │ …                             │  etichette [+]                │
 ├───────────────────────────────┴───────────────────────────────┤
-│ ↵ Incolla   ⇧↵ Testo semplice   E Modifica   P Fissa   ⌫ Elimina│  barra comandi 36px
+│ ↵ Incolla  ⇧↵ Testo semplice  Ctrl+E Modifica  Ctrl+P Fissa  Ctrl+L │  barra comandi 36px
 └───────────────────────────────────────────────────────────────┘
 ```
 Sotto 640 px l'anteprima collassa (la lista occupa tutto; Tab alterna).
@@ -112,7 +113,7 @@ Sotto 640 px l'anteprima collassa (la lista occupa tutto; Tab alterna).
 `transform`/`opacity` soltanto. Apertura popup 140 ms ease-out-quart (fade + 6 px), selezione 90 ms, nessun rimbalzo. `prefers-reduced-motion`: tutto istantaneo.
 
 ### Tastiera (tutte rimappabili solo per l'hotkey globale; le altre fisse)
-↑/↓ PgUp/PgDn Home/End navigano · ↵ incolla · ⇧↵ testo semplice · Ctrl+1…9,0 incolla posizione · Tab alterna lista/anteprima · F3 anteprima grande · E o F2 modifica · P fissa/sblocca · L etichette (picker) · Alt+1…8 filtro etichetta · Del elimina · Ctrl+A multi · Esc chiude/annulla · Ctrl+, impostazioni.
+↑/↓ PgUp/PgDn navigano · ↵ incolla · ⇧↵ testo semplice · Ctrl+1…9,0 incolla posizione · Tab sposta il focus sull'anteprima · F3 mostra/nasconde anteprima · Ctrl+E o F2 modifica · Ctrl+P fissa/sblocca · Ctrl+L etichette (digita per filtrare o creare) · Alt+1…8 filtro etichetta · Alt+↑/↓ sposta · Ctrl+D (o Canc a ricerca vuota) elimina · Ctrl+N nuova clip · Esc annulla/svuota/chiude · Ctrl+, impostazioni. (Le lettere singole sono libere: il focus resta sul campo di ricerca.)
 
 ### Accessibilità
 Ruoli `listbox`/`option`, `aria-activedescendant`, contrasto ≥ 4.5:1, focus sempre visibile, nessuna informazione solo-colore (le etichette hanno anche il nome).
