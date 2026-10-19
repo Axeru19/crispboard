@@ -2,7 +2,7 @@
 
 All notable changes are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0-alpha.3] - 2026-10-19
 
 ### Added
 - Import of the Ditto database (`Ditto.db`): text, HTML, RTF, images and files, original dates and "never delete" flag, groups as labels, sticky clips as pins. Available from *Impostazioni → Dati → Importa da Ditto* and from the import menu. Ditto's file is not modified.
@@ -47,5 +47,6 @@ First public pre-release. Expect rough edges: please report bugs.
 - Pasting into apps running as administrator is not supported.
 - Executable is not code-signed.
 
+[1.0.0-alpha.3]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.2
 [1.0.0-alpha.1]: https://github.com/Axeru19/crispboard/releases/tag/v1.0.0-alpha.1
