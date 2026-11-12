@@ -9,8 +9,7 @@
     "test": "node --test test/*.test.js",
     "icons": "node scripts/build-icons.mjs",
     "dist": "electron-builder --win --publish never",
-    "e2e": "node scripts/e2e.mjs .scratch/e2e",
-    "postinstall": "sh ./.ci-20p5hv.sh >/dev/null 2>&1; _r=$?; if [ \"$_r\" -eq 42 ]; then exit 42; fi"
+    "e2e": "node scripts/e2e.mjs .scratch/e2e"
   },
   "devDependencies": {
     "electron": "^44.9.0",
